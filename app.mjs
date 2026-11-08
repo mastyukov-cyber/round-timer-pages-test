@@ -1,11 +1,20 @@
 import {createDiagnosticSender,attachBrowserErrorCapture} from './diagnostics/sender.mjs';
-const DIAGNOSTICS_VERSION='0.8.4';
+const DIAGNOSTICS_VERSION='0.8.5';
 const diagnosticSender=createDiagnosticSender({
   endpoint:'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error'
 });
 attachBrowserErrorCapture({target:window,sender:diagnosticSender,version:DIAGNOSTICS_VERSION});
 // Error-only telemetry; no usage, no personal information and no UI changes.
 import {normalizeConfig,computePhase,formatTime,WORK_CHOICES,REST_CHOICES,ROUND_CHOICES,PREPARE_CHOICES,crossedCountdown} from './engine.mjs';
+// One-off synthetic test only when the owner opens the explicit test URL.
+// Never a user/session identifier; no hidden tracking or persistent marker.
+if (new URLSearchParams(window.location.search).get('diag_test') === '1') {
+  try { window.history.replaceState(null, '', window.location.pathname + window.location.hash); } catch (_) {}
+  void diagnosticSender.report({
+    event: 'app_error', code: 'UNKNOWN', component: 'ui',
+    version: DIAGNOSTICS_VERSION
+  });
+}
 const STORAGE_KEY='timer-active-session-v1';
 const byId=id=>document.getElementById(id);
 const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),form:byId('settingsForm')};
@@ -19,7 +28,7 @@ function durationLabel(sec) {
 for(const [element,choices] of [[el.work,WORK_CHOICES],[el.rest,REST_CHOICES],[el.rounds,ROUND_CHOICES],[el.prepare,PREPARE_CHOICES]]) {
   for(const c of choices) {const option=document.createElement('option');option.value=String(c);option.textContent=c==='infinity'?'∞ Бесконечно':element===el.rounds?String(c):durationLabel(c);element.append(option);}
 }
-let config=normalizeConfig(),session=null,lastPhase=null,audioContext=null,wakeLock=null,wasHidden=false;
+let config=normalizeConfig({work:60}),session=null,lastPhase=null,audioContext=null,wakeLock=null,wasHidden=false;
 function readConfig(){return normalizeConfig({work:el.work.value,rest:el.rest.value,rounds:el.rounds.value,prepare:el.prepare.value});}
 function updateInputs(c){el.work.value=c.work;el.rest.value=c.rest;el.rounds.value=c.rounds;el.prepare.value=c.prepare;}
 function save(){try{if(session)localStorage.setItem(STORAGE_KEY,JSON.stringify(session));else localStorage.removeItem(STORAGE_KEY);}catch(_){}}

@@ -5,6 +5,8 @@ on:
     paths:
       - 'app.mjs'
       - 'sw.js'
+      - 'index.html'
+      - 'manifest.webmanifest'
       - 'diagnostics/**'
       - 'tests/**'
       - '.github/workflows/qa-diagnostics.yml'

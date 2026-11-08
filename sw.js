@@ -1,6 +1,6 @@
-// Offline-first service worker v0.8.4 test. Avoid waiting for a blocked/throttled CDN.
+// Offline-first service worker v0.8.5 test. Avoid waiting for a blocked/throttled CDN.
 // App shell and audio must be served from local CacheStorage after first install.
-const CACHE_NAME = 'round-timer-shell-v0.8.4-test';
+const CACHE_NAME = 'round-timer-shell-v0.8.5-test';
 const SHELL = [
   './', './index.html', './styles.css', './app.mjs', './engine.mjs',
   './diagnostics/sender.mjs', './diagnostics/schema.mjs',

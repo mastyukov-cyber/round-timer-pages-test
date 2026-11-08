@@ -9,7 +9,6 @@ const text=(name)=>file(name).toString('utf8');
 
 test('Original approved UI and engine files have identical bytes', () => {
   const approved={
-    'index.html':'4636aba0879a151d30cc64c98b91d9d3cc137e79bd2fb10e518619874d7a6f15',
     'styles.css':'5ac2df0416beab144424a91d638266acf800b2ea5808076b91374799f3009a0a',
     'engine.mjs':'1f99d689ad8894bc89ab591b4447e1336dc2b5faf97781ad4e40abd0058416c8',
     'sounds/gong-start.mp3':'b440d5440f2d104d15ac3e0553366e7bf0db13014599d14e5e8b94b3744a4333',
@@ -22,7 +21,7 @@ test('Original approved UI and engine files have identical bytes', () => {
 });
 test('PWA service worker caches diagnostics for offline use',()=>{
   const sw=text('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.4-test'));
+  assert(sw.includes('round-timer-shell-v0.8.5-test'));
   assert(sw.includes('./diagnostics/schema.mjs'));
   assert(sw.includes('./diagnostics/sender.mjs'));
 });
@@ -40,14 +39,45 @@ test('PII and workout events cannot leave the diagnostic sender',async()=>{
     endpoint:'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error',
     transport:async (url,options)=>{sent.push({url,...options});}
   });
-  assert.equal(await s.report({event:'workout_start',version:'0.8.4'}),false);
-  assert.equal(await s.report({event:'app_error',code:'UNHANDLED_ERROR',component:'ui',version:'0.8.4',name:'Private',ip:'192.0.2.1',stack:'Private'}),true);
+  assert.equal(await s.report({event:'workout_start',version:'0.8.5'}),false);
+  assert.equal(await s.report({event:'app_error',code:'UNHANDLED_ERROR',component:'ui',version:'0.8.5',name:'Private',ip:'192.0.2.1',stack:'Private'}),true);
   assert.equal(sent.length,1);
-  assert.deepEqual(JSON.parse(sent[0].body),{event:'app_error',code:'UNHANDLED_ERROR',component:'ui',version:'0.8.4'});
+  assert.deepEqual(JSON.parse(sent[0].body),{event:'app_error',code:'UNHANDLED_ERROR',component:'ui',version:'0.8.5'});
   assert.equal(sent[0].credentials,'omit');
   assert(!sent[0].body.includes('Private'));
 });
 test('Failed network remains a silent nonblocking attempt',async()=>{
   const s=createDiagnosticSender({endpoint:'https://log.example.test/',transport:async()=>{throw Error('No network');}});
-  assert.equal(await s.report({event:'app_error',code:'UNKNOWN',component:'ui',version:'0.8.4'}),false);
+  assert.equal(await s.report({event:'app_error',code:'UNKNOWN',component:'ui',version:'0.8.5'}),false);
+});
+
+test('Default work duration is one minute without changing timer engine',()=>{
+  const app=text('app.mjs');
+  assert.match(app,/let config=normalizeConfig\(\{work:60\}\)/);
+  assert.match(text('index.html'),/role="timer" aria-live="off">01:00<\/div>/);
+});
+test('Home screen name is Раунд таймер in both Apple metadata and manifest',()=>{
+  const html=text('index.html');
+  const manifest=JSON.parse(text('manifest.webmanifest'));
+  assert(html.includes('<meta name="apple-mobile-web-app-title" content="Раунд таймер">'));
+  assert(html.includes('<title>Раунд таймер</title>'));
+  assert.equal(manifest.name,'Раунд таймер');
+  assert.equal(manifest.short_name,'Раунд таймер');
+  assert.equal(manifest.start_url,'./');
+});
+test('One-off test signal uses only pre-approved technical error fields',()=>{
+  const app=text('app.mjs');
+  assert.match(app,/new URLSearchParams\(window.location.search\).get\('diag_test'\) === '1'/);
+  assert(app.includes("event: 'app_error', code: 'UNKNOWN', component: 'ui'"));
+  assert(app.includes("window.history.replaceState"));
+  assert(!app.includes('deviceId'));
+  assert(!app.includes('navigator.userAgent'));
+});
+test('No new controls or unexpected markup: only three targeted HTML changes',()=>{
+  // createHash is already imported from node:crypto
+  let html=text('index.html');
+  html=html.replace('<meta name="apple-mobile-web-app-title" content="Раунд таймер">','<meta name="apple-mobile-web-app-title" content="Раунды">')
+    .replace('<title>Раунд таймер</title>','<title>Таймер раундов</title>')
+    .replace('role="timer" aria-live="off">01:00</div>','role="timer" aria-live="off">02:00</div>');
+  assert.equal(createHash('sha256').update(html).digest('hex'),'4636aba0879a151d30cc64c98b91d9d3cc137e79bd2fb10e518619874d7a6f15');
 });
