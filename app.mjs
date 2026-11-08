@@ -1,3 +1,10 @@
+import {createDiagnosticSender,attachBrowserErrorCapture} from './diagnostics/sender.mjs';
+const DIAGNOSTICS_VERSION='0.8.4';
+const diagnosticSender=createDiagnosticSender({
+  endpoint:'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error'
+});
+attachBrowserErrorCapture({target:window,sender:diagnosticSender,version:DIAGNOSTICS_VERSION});
+// Error-only telemetry; no usage, no personal information and no UI changes.
 import {normalizeConfig,computePhase,formatTime,WORK_CHOICES,REST_CHOICES,ROUND_CHOICES,PREPARE_CHOICES,crossedCountdown} from './engine.mjs';
 const STORAGE_KEY='timer-active-session-v1';
 const byId=id=>document.getElementById(id);
@@ -28,7 +35,7 @@ function restore(){try{
 }catch(_){}}
 function elapsedNow(){return session?session.elapsedBeforeMs+(session.status==='running'?Math.max(0,Date.now()-session.resumedAt):0):0;}
 function phaseNow(){return computePhase(config,elapsedNow());}
-function unlockAudio(){try{audioContext ||= new (window.AudioContext||window.webkitAudioContext)();audioContext.resume().then(preloadSounds).catch(()=>{});}catch(_){}}
+function unlockAudio(){try{audioContext ||= new (window.AudioContext||window.webkitAudioContext)();audioContext.resume().then(preloadSounds).catch(()=>{void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});});}catch(_){}}
 // Original boxing-style sounds, not extracted from any third-party app.
 // Audio is unlocked on a direct button press; silence in the background is expected on iOS.
 const SOUND_PATHS={start:'./sounds/gong-start.mp3',end:'./sounds/gong-end.mp3',clack:'./sounds/woodclack.mp3'};
@@ -39,7 +46,7 @@ function preloadSounds(){
  soundsLoading=Promise.all(Object.entries(SOUND_PATHS).map(async([name,url])=>{
    try {const resp=await fetch(url);if(!resp.ok)throw new Error('audio fetch failed');
      soundBuffers[name]=await audioContext.decodeAudioData(await resp.arrayBuffer());}
-   catch(err){console.warn('Audio not available',name,err);}
+   catch(err){console.warn('Audio not available',name,err);void diagnosticSender.report({event:'audio_failure',code:'ASSET_LOAD_FAILED',component:'audio',version:DIAGNOSTICS_VERSION});}
  }));return soundsLoading;
 }
 function sound(type){
