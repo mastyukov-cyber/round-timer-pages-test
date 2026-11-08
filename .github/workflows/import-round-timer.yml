@@ -1,0 +1,90 @@
+name: Import checked Round Timer v0.8.3 public static files
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/import-round-timer.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch published assets and verify SHA-256 against approved v0.8.3 archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib
+          from pathlib import Path
+          from urllib.request import Request, urlopen
+
+          base = 'https://round-timer-pwa.pages.dev/'
+          expected = {
+              'sw.js': '3ac186a4adbdc81689de2a3aeb20909ef8729731f1fce8eaf48e0db73ee79c83',
+              'engine.mjs': '1f99d689ad8894bc89ab591b4447e1336dc2b5faf97781ad4e40abd0058416c8',
+              'index.html': '4636aba0879a151d30cc64c98b91d9d3cc137e79bd2fb10e518619874d7a6f15',
+              'app.mjs': '5724d1b66f66688871f6948a076c18ca91c3f2b96c60f7d1595acfc2e4c68fc1',
+              'styles.css': '5ac2df0416beab144424a91d638266acf800b2ea5808076b91374799f3009a0a',
+              'icons/apple-touch-icon.png': 'f1d99987b223a62ed42925b34b4789d9901a6f358195bc7abf71c11efd81cc96',
+              'icons/icon-192.png': '2b457b5b9d577dc69ed3564c740877259945618f3a287273dabda84b808ede00',
+              'icons/icon-512.png': 'b1ace2364d256b74d01113dfdf1b5fc9bcf69e7f5dab7c2ea8633a5686b994f3',
+              'manifest.webmanifest': '2200fc4ffa9ce00db8f08e89122974faa74123e414767cf6ec70a7fd3a79816a',
+              'sounds/gong-end.mp3': '13c66a498dfae6921fe77343550f29b06c4470e04e5c7373629f0639096e43d7',
+              'sounds/gong-start.mp3': 'b440d5440f2d104d15ac3e0553366e7bf0db13014599d14e5e8b94b3744a4333',
+              'sounds/woodclack.mp3': '7bbc5e40111dbb7d61d50a7984cccc25bdc55c37ab1c056d5b18c6ae7147aa71',
+          }
+          for name, digest in expected.items():
+              path = Path(name)
+              path.parent.mkdir(parents=True, exist_ok=True)
+              req = Request(base + name, headers={'User-Agent': 'RoundTimer-Pages-Test/1.0', 'Cache-Control': 'no-cache'})
+              with urlopen(req, timeout=30) as response:
+                  data = response.read()
+              actual = hashlib.sha256(data).hexdigest()
+              if actual != digest:
+                  raise SystemExit(f'FAIL SHA-256 for {name}: expected {digest}, got {actual}')
+              path.write_bytes(data)
+              print(f'PASS {name} ({len(data)} bytes)')
+          Path('.nojekyll').write_text('')
+          Path('README.md').write_text(
+              '# Round Timer — GitHub Pages reachability test\n\n'
+              'Public test copy of the approved Round Timer PWA v0.8.3. '
+              'Files verified with SHA-256; there are no private credentials.\n\n'
+              'The primary application remains at https://round-timer-pwa.pages.dev/.\n'
+              'To publish: Settings → Pages → Deploy from a branch → main / (root).\n'
+          )
+          print('PASS: 12/12 verified')
+          PY
+      - name: Validate PWA scripts and manifest
+        run: |
+          set -euo pipefail
+          node --check app.mjs
+          node --check engine.mjs
+          node --check sw.js
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = json.loads(Path('manifest.webmanifest').read_text())
+          assert manifest.get('display') == 'standalone'
+          assert manifest.get('start_url') == './'
+          assert 'round-timer-shell-v0.8.3' in Path('sw.js').read_text()
+          print('PASS: JavaScript syntax, PWA manifest, offline service worker')
+          PY
+      - name: Commit verified assets to public test repository only
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md .nojekyll index.html app.mjs engine.mjs styles.css sw.js manifest.webmanifest icons/ sounds/
+          if git diff --cached --quiet; then
+            echo 'PASS: Files already match the expected version'
+            exit 0
+          fi
+          git commit -m 'Import checksum-verified Round Timer v0.8.3 for Pages testing'
+          git push origin HEAD:main
