@@ -1,0 +1,66 @@
+name: Round Timer v0.8.6 candidate — TEST Pages preview only
+on:
+  push:
+    branches: [qa/round-timer-v086-preview]
+    paths:
+      - 'app.mjs'
+      - 'audio-guard.mjs'
+      - 'sw.js'
+      - 'index.html'
+      - 'privacy.html'
+      - 'diagnostics/**'
+      - '.github/workflows/preview-v086.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: round-timer-test-preview-only
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    name: Package test-only PWA; never touch primary site
+    if: github.repository == 'mastyukov-cyber/round-timer-pages-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check preview has NO production diagnostic reporting
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q "endpoint:'' // preview-only" app.mjs
+          if grep -q 'round-timer-error-receiver.mastyukov.workers.dev' app.mjs; then
+            echo 'BLOCKED: preview would submit to production Cloudflare'
+            exit 1
+          fi
+          node --check app.mjs
+          node --check audio-guard.mjs
+          node --check sw.js
+          node --check diagnostics/sender.mjs
+          for f in sounds/gong-start.mp3 sounds/gong-end.mp3 sounds/woodclack.mp3; do test -s "$f"; done
+          echo 'TEST_PREVIEW: syntax PASS, production telemetry disabled'
+      - name: Package public PWA files only
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p preview
+          cp app.mjs audio-guard.mjs sw.js index.html privacy.html engine.mjs styles.css manifest.webmanifest .nojekyll preview/
+          cp -R diagnostics sounds icons preview/
+          echo 'PWA_PACKAGE: PASS, no workflows or secrets bundled'
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: preview
+      - name: Deploy test-environment candidate only
+        id: deploy
+        uses: actions/deploy-pages@v4
