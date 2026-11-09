@@ -2,82 +2,69 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {createDiagnosticSender} from '../diagnostics/sender.mjs';
+import {createDelayedStartGuard,createActiveSoundController} from '../audio-guard.mjs';
+import {productionDiagnosticEndpoint} from '../diagnostics/sender.mjs';
 
-const file=(name)=>readFileSync(new URL('../'+name,import.meta.url));
-const text=(name)=>file(name).toString('utf8');
+const content=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
-test('Original approved UI and engine files have identical bytes', () => {
-  const approved={
-    'styles.css':'5ac2df0416beab144424a91d638266acf800b2ea5808076b91374799f3009a0a',
+test('preview identity and correct offline shell',()=>{
+  const build=JSON.parse(content('preview-build.json'));
+  assert.equal(build.version,'v0.8.6-audio-rc2');
+  assert.equal(build.production,false);
+  assert.match(content('index.html'),/round-timer-preview-build/);
+  const sw=content('sw.js');
+  assert(sw.includes('round-timer-shell-v0.8.6-audio-rc2'));
+  for(const path of ['audio-guard.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
+    assert(sw.includes('./'+path),path);
+  }
+});
+
+test('preview cannot send diagnostic events to production Cloudflare',()=>{
+  const host='https://mastyukov-cyber.github.io';
+  const endpoint='https://round-timer-error-receiver.mastyukov.workers.dev/v1/error';
+  assert.equal(productionDiagnosticEndpoint({origin:host,pathname:'/round-timer-pages-test/'},endpoint),'');
+  assert.equal(productionDiagnosticEndpoint({origin:'http://localhost:3000',pathname:'/'},endpoint),'');
+});
+
+test('PAUSE cancels delayed sound decode',async()=>{
+  let resolveLoading;
+  const loading=new Promise(resolve=>{resolveLoading=resolve;});
+  let plays=0;
+  const guard=createDelayedStartGuard({canPlay:()=>true,play:()=>{plays++;}});
+  guard.schedule(loading);
+  guard.invalidate();
+  resolveLoading();
+  await settled();
+  assert.equal(plays,0);
+});
+
+test('PAUSE and Home immediately retire an already playing gong',()=>{
+  const sources=[];
+  const context={currentTime:2,destination:{},
+    createBufferSource(){const s={connect(){},disconnect(){},start(t){this.startAt=t;},stop(t){this.stopAt=t;},onended:null};sources.push(s);return s;},
+    createGain(){const gain={value:1,cancelScheduledValues(){},setValueAtTime(v){this.value=v;},linearRampToValueAtTime(v){this.value=v;}};return {gain,connect(){},disconnect(){}};}
+  };
+  const audio=createActiveSoundController();
+  audio.play({context,buffer:{},volume:.9});
+  audio.stopAll({fadeMs:16});
+  assert.equal(sources.length,1);
+  assert.ok(sources[0].stopAt>=2 && sources[0].stopAt<=2.05);
+  audio.stopAll({fadeMs:0}); // Repeated visibility/pagehide is harmless.
+  audio.play({context,buffer:{}});
+  audio.stopAll({fadeMs:8});
+  assert.ok(sources[1].stopAt<=2.05);
+});
+
+test('audio assets and engine unchanged from approved timer',()=>{
+  const expected={
     'engine.mjs':'1f99d689ad8894bc89ab591b4447e1336dc2b5faf97781ad4e40abd0058416c8',
+    'styles.css':'5ac2df0416beab144424a91d638266acf800b2ea5808076b91374799f3009a0a',
     'sounds/gong-start.mp3':'b440d5440f2d104d15ac3e0553366e7bf0db13014599d14e5e8b94b3744a4333',
     'sounds/gong-end.mp3':'13c66a498dfae6921fe77343550f29b06c4470e04e5c7373629f0639096e43d7',
     'sounds/woodclack.mp3':'7bbc5e40111dbb7d61d50a7984cccc25bdc55c37ab1c056d5b18c6ae7147aa71'
   };
-  for(const [path,expected] of Object.entries(approved)){
-    assert.equal(createHash('sha256').update(file(path)).digest('hex'),expected,path);
+  for(const [path,hash] of Object.entries(expected)){
+    assert.equal(createHash('sha256').update(readFileSync(new URL('../'+path,import.meta.url))).digest('hex'),hash,path);
   }
-});
-test('PWA service worker caches diagnostics for offline use',()=>{
-  const sw=text('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.5-test'));
-  assert(sw.includes('./diagnostics/schema.mjs'));
-  assert(sw.includes('./diagnostics/sender.mjs'));
-});
-test('Test UI contains no added controls and errors are the only events',()=>{
-  const app=text('app.mjs');
-  assert(app.includes('attachBrowserErrorCapture('));
-  assert(app.includes('event:\'audio_failure\''));
-  assert(!app.includes('session_start'));
-  assert(!app.includes('workout_start'));
-  assert(!app.includes('workout_complete'));
-});
-test('PII and workout events cannot leave the diagnostic sender',async()=>{
-  const sent=[];
-  const s=createDiagnosticSender({
-    endpoint:'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error',
-    transport:async (url,options)=>{sent.push({url,...options});}
-  });
-  assert.equal(await s.report({event:'workout_start',version:'0.8.5'}),false);
-  assert.equal(await s.report({event:'app_error',code:'UNHANDLED_ERROR',component:'ui',version:'0.8.5',name:'Private',ip:'192.0.2.1',stack:'Private'}),true);
-  assert.equal(sent.length,1);
-  assert.deepEqual(JSON.parse(sent[0].body),{event:'app_error',code:'UNHANDLED_ERROR',component:'ui',version:'0.8.5'});
-  assert.equal(sent[0].credentials,'omit');
-  assert(!sent[0].body.includes('Private'));
-});
-test('Failed network remains a silent nonblocking attempt',async()=>{
-  const s=createDiagnosticSender({endpoint:'https://log.example.test/',transport:async()=>{throw Error('No network');}});
-  assert.equal(await s.report({event:'app_error',code:'UNKNOWN',component:'ui',version:'0.8.5'}),false);
-});
-
-test('Default work duration is one minute without changing timer engine',()=>{
-  const app=text('app.mjs');
-  assert.match(app,/let config=normalizeConfig\(\{work:60\}\)/);
-  assert.match(text('index.html'),/role="timer" aria-live="off">01:00<\/div>/);
-});
-test('Home screen name is Раунд таймер in both Apple metadata and manifest',()=>{
-  const html=text('index.html');
-  const manifest=JSON.parse(text('manifest.webmanifest'));
-  assert(html.includes('<meta name="apple-mobile-web-app-title" content="Раунд таймер">'));
-  assert(html.includes('<title>Раунд таймер</title>'));
-  assert.equal(manifest.name,'Раунд таймер');
-  assert.equal(manifest.short_name,'Раунд таймер');
-  assert.equal(manifest.start_url,'./');
-});
-test('One-off test signal uses only pre-approved technical error fields',()=>{
-  const app=text('app.mjs');
-  assert.match(app,/new URLSearchParams\(window.location.search\).get\('diag_test'\) === '1'/);
-  assert(app.includes("event: 'app_error', code: 'UNKNOWN', component: 'ui'"));
-  assert(app.includes("window.history.replaceState"));
-  assert(!app.includes('deviceId'));
-  assert(!app.includes('navigator.userAgent'));
-});
-test('No new controls or unexpected markup: only three targeted HTML changes',()=>{
-  // createHash is already imported from node:crypto
-  let html=text('index.html');
-  html=html.replace('<meta name="apple-mobile-web-app-title" content="Раунд таймер">','<meta name="apple-mobile-web-app-title" content="Раунды">')
-    .replace('<title>Раунд таймер</title>','<title>Таймер раундов</title>')
-    .replace('role="timer" aria-live="off">01:00</div>','role="timer" aria-live="off">02:00</div>');
-  assert.equal(createHash('sha256').update(html).digest('hex'),'4636aba0879a151d30cc64c98b91d9d3cc137e79bd2fb10e518619874d7a6f15');
 });

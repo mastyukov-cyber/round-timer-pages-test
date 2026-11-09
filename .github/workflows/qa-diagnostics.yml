@@ -1,12 +1,13 @@
-name: Round Timer test PWA diagnostics regression
+name: Round Timer test PWA audio RC2 regression (no secrets)
 on:
   push:
     branches: [main]
     paths:
       - 'app.mjs'
+      - 'audio-guard.mjs'
       - 'sw.js'
       - 'index.html'
-      - 'manifest.webmanifest'
+      - 'preview-build.json'
       - 'diagnostics/**'
       - 'tests/**'
       - '.github/workflows/qa-diagnostics.yml'
@@ -19,13 +20,12 @@ jobs:
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
-      - name: Check scripts
+        with:
+          persist-credentials: false
+      - name: Syntax and required assets
         run: |
           set -euo pipefail
-          node --check app.mjs
-          node --check engine.mjs
-          node --check sw.js
-          node --check diagnostics/schema.mjs
-          node --check diagnostics/sender.mjs
-      - name: Verify preserved UI and error-only telemetry
+          for f in index.html app.mjs audio-guard.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs privacy.html preview-build.json; do test -s "$f"; done
+          for f in app.mjs audio-guard.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs; do node --check "$f"; done
+      - name: Preview-only smoke, audio pause/background and origin safety
         run: node --test tests/diagnostics-smoke.test.mjs
