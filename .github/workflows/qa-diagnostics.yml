@@ -1,10 +1,11 @@
-name: Round Timer test PWA audio RC2 regression (no secrets)
+name: Round Timer test PWA HTML Audio RC4 (no deploy / secrets)
 on:
   push:
     branches: [main]
     paths:
       - 'app.mjs'
       - 'audio-guard.mjs'
+      - 'html-audio.mjs'
       - 'sw.js'
       - 'index.html'
       - 'preview-build.json'
@@ -25,7 +26,7 @@ jobs:
       - name: Syntax and required assets
         run: |
           set -euo pipefail
-          for f in index.html app.mjs audio-guard.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs privacy.html preview-build.json; do test -s "$f"; done
-          for f in app.mjs audio-guard.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs; do node --check "$f"; done
+          for f in index.html app.mjs audio-guard.mjs html-audio.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs privacy.html preview-build.json; do test -s "$f"; done
+          for f in app.mjs audio-guard.mjs html-audio.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs; do node --check "$f"; done
       - name: Preview-only smoke, audio pause/background and origin safety
-        run: node --test tests/diagnostics-smoke.test.mjs
+        run: node --test tests/*.test.mjs

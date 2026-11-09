@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-audio-rc3.1",
+  "version": "v0.8.6-html-rc4",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 9,
-  "source_commit": "342391c392dd36eb8596651c13f26ebec95b23b2",
+  "source_pr": 10,
+  "source_commit": "5b421478581ed3695fb23d6ae6a9ed54b641c7c2",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "Audio RC3 sound behavior unchanged; preview-only version label added in Settings"
+  "note": "HTML Audio experiment; Web Audio comparison in Settings, no music ducking"
 }

@@ -10,12 +10,12 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-audio-rc3.1');
+  assert.equal(build.version,'v0.8.6-html-rc4');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-audio-rc3.1'));
-  for(const path of ['audio-guard.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
+  assert(sw.includes('round-timer-shell-v0.8.6-html-rc4'));
+  for(const path of ['audio-guard.mjs','html-audio.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
 });
@@ -117,5 +117,14 @@ test('version label update does not modify audio/engine and preserves preview pr
   const files=['audio-guard.mjs','app.mjs','engine.mjs'];
   for(const p of files) assert(content(p).length>100,p);
   assert(!content('app.mjs').includes('audioSession.type'));
+  assert.equal(JSON.parse(content('preview-build.json')).production,false);
+});
+
+test('RC4 HTML setting is preview-only, default experiment, production unchanged',()=>{
+  const app=content('app.mjs'),sw=content('sw.js');
+  assert(app.includes("globalThis.location?.origin==='https://mastyukov-cyber.github.io'"));
+  assert(app.includes("audioMode='html'"));
+  assert(app.includes("ДВИЖОК ЗВУКА · ТЕСТ"));
+  assert(sw.includes('./html-audio.mjs'));
   assert.equal(JSON.parse(content('preview-build.json')).production,false);
 });

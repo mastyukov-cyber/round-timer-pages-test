@@ -1,15 +1,11 @@
-# Round Timer — isolated audio RC3 iPhone regression
-**PREVIEW ONLY — not production**
-- Build: `v0.8.6-audio-rc3`
-- Draft PR: https://github.com/mastyukov/round-timer/pull/9
-- Source SHA: `342391c392dd36eb8596651c13f26ebec95b23b2`
-- Preview URL: https://mastyukov-cyber.github.io/round-timer-pages-test/
-- Version check: https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
-- Objective: verify AUDIO-01 pause remains fixed and AUDIO-02 iPhone buzzing on minimize is gone. WebKit/real iPhone is unverified at deploy time.
-- Browser `blur` handling precedes `visibilitychange` when the browser delivers events in that order; no guarantee iOS exposes blur before sound interruption.
-- External music ducking 50% is requested as a **separate future experiment**, not enabled in RC3.
-- Production Cloudflare error transport is disabled on this preview by origin/path gating.
+# APP-001 Round Timer HTML Audio RC4 — test only
 
-Production timer remains: https://mastyukov.github.io/round-timer/ (unchanged).
+Build: `v0.8.6-html-rc4`. Source draft PR https://github.com/mastyukov/round-timer/pull/10 , SHA `5b421478581ed3695fb23d6ae6a9ed54b641c7c2`.
 
-Only test repo `main` advanced. Test-site rollback SHA before RC3: `d8c4c1d31b0f1471727902a38181e365b7e3ae42`. Restore by a new revert commit if explicitly requested.
+Installed iPhone PWA AUDIO-02 investigation. Settings show HTML Audio experiment (default) and Web Audio (control). HTML Audio mutes and pauses on Home/blur. iOS may block automatic cues without a user gesture, so real iPhone testing is required.
+
+Production timer https://mastyukov.github.io/round-timer/ unchanged; production Cloudflare telemetry disabled on preview. Music ducking 50% is a separate future experiment.
+
+Preview https://mastyukov-cyber.github.io/round-timer-pages-test/
+Build metadata https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
+Previous test commit `074e66672d37a0020a8749b001b0c22feb5bbe83` for rollback.
