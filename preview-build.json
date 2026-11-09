@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-duck-rc5",
+  "version": "v0.8.6-mix-rc6",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 11,
-  "source_commit": "65701f1f0fa599d9e826c2863fbf1fb3f1c40a9c",
+  "source_pr": 12,
+  "source_commit": "835eb0ca19816e6d16bb517b19f80bf40ae40ae1",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "music ducking ~50% goal via transient Audio Session; actual reduction controlled by iOS; HTML/Web audio comparison preserved"
+  "note": "HTML Audio + music coexistence ON by default, no precise volume ducking; Web Audio comparison; device verification pending"
 }

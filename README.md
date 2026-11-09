@@ -1,13 +1,16 @@
-# APP-001 Round Timer — experimental music ducking (test-only)
+# APP-001 Round Timer RC6 — music coexistence / installed iPhone PWA
 
-Build `v0.8.6-duck-rc5`. Source draft PR #11 https://github.com/mastyukov/round-timer/pull/11 at `65701f1f0fa599d9e826c2863fbf1fb3f1c40a9c`.
+**Preview only.** Build `v0.8.6-mix-rc6`; source draft PR https://github.com/mastyukov/round-timer/pull/12, commit `835eb0ca19816e6d16bb517b19f80bf40ae40ae1`.
 
-In training settings: music ducking ON (default, target approximately 50%, system-controlled) or OFF. iOS must support `navigator.audioSession.type='transient'`. Only active briefly while cue plays, then restores previous type. If unsupported, the switch is disabled. Do not claim actual precise volume control. Changing audio type may fail to produce gong audio on some versions of iOS and when silent switch is on.
+Observed RC5 on real iPhone:
+- Home Screen minimize buzz: **not reproduced** (device check of RC5 only).
+- HTML Audio + transient enabled: other music continues at its original volume (no precise ducking).
+- HTML Audio with mode off: other music is interrupted when timer sounds.
+- Web Audio: music continues regardless of switch.
 
-Two playback transports (HTML Audio and Web Audio) remain available in preview settings. Test Bluetooth speaker, gong/pause/Home and music restoration. This is *not* approval to merge PRs.
+RC6 changes: labels accurately say 'music plays together', defaults reset on preview to HTML Audio + coexistence ON, mixing switch hidden for Web Audio, Web Audio's ambient mix is not modified. Signals/audio sources and timer engine unchanged. **No promise of precise 50% other-app volume**.
 
-Production https://mastyukov.github.io/round-timer/ unchanged; production telemetry/Cloudflare disabled on preview.
+Preview: https://mastyukov-cyber.github.io/round-timer-pages-test/
+Version: https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
 
-Preview https://mastyukov-cyber.github.io/round-timer-pages-test/
-Build check https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
-Previous preview commit for rollback `c09d9520d82bead1c52c19f3a2b03e2ba55e5377`.
+Production timer remains https://mastyukov.github.io/round-timer/; no Cloudflare telemetry on preview. Prior test SHA for rollback: `74b126fcd470cf62f6fe7b90f01606b94a70f766`. iPhone RC6 verification PENDING.

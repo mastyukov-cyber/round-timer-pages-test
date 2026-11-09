@@ -1,4 +1,4 @@
-name: Round Timer test PWA music ducking RC5 (no deploy / secrets)
+name: Round Timer test PWA music coexistence RC6 (no deploy / secrets)
 on:
   push:
     branches: [main]

@@ -10,11 +10,11 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-duck-rc5');
+  assert.equal(build.version,'v0.8.6-mix-rc6');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-duck-rc5'));
+  assert(sw.includes('round-timer-shell-v0.8.6-mix-rc6'));
   for(const path of ['audio-guard.mjs','html-audio.mjs','audio-duck.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
@@ -90,9 +90,9 @@ test('blur interrupts gong before delayed visibilitychange, pagehide forces stop
   guard.dispose();
 });
 
-test('music ducking experiment remains preview-only',()=>{
-  assert(content('app.mjs').includes('PREVIEW_DUCK_KEY'));
-  assert(content('app.mjs').includes('ПРИГЛУШАТЬ МУЗЫКУ'));
+test('music coexistence remains preview-only',()=>{
+  assert(content('app.mjs').includes('PREVIEW_MUSIC_KEY'));
+  assert(content('app.mjs').includes('МУЗЫКА ПРИ СИГНАЛАХ'));
   assert(content('app.mjs').includes('isPreview'));
   assert(content('audio-duck.mjs').includes("session.type='transient'"));
   assert(!content('audio-duck.mjs').includes("session.type='transient-solo'"));
@@ -123,21 +123,21 @@ test('version label update does not modify audio/engine and preserves preview pr
   assert.equal(JSON.parse(content('preview-build.json')).production,false);
 });
 
-test('RC4 HTML setting is preview-only, default experiment, production unchanged',()=>{
+test('RC6 HTML setting is preview-only, default HTML, production unchanged',()=>{
   const app=content('app.mjs'),sw=content('sw.js');
   assert(app.includes("globalThis.location?.origin==='https://mastyukov-cyber.github.io'"));
   assert(app.includes("audioMode='html'"));
-  assert(app.includes("ДВИЖОК ЗВУКА · ТЕСТ"));
+  assert(app.includes("ЗВУК ТАЙМЕРА · ТЕСТ"));
   assert(sw.includes('./html-audio.mjs'));
   assert.equal(JSON.parse(content('preview-build.json')).production,false);
 });
 
-test('RC5 labels include optional ducking switch and restore guard',()=>{
+test('RC6 labels reflect the device result and maintain session restoration',()=>{
  const app=content('app.mjs');
  const duck=content('audio-duck.mjs');
- assert(app.includes('ВКЛ · цель ≈50%'));
- assert(app.includes('ВЫКЛ · без приглушения'));
- assert(app.includes('ducking.stop()'));
+ assert(app.includes('ВКЛ · музыка играет вместе'));
+ assert(app.includes('ВЫКЛ · музыка может прерваться'));
+ assert(app.includes('sessionMix.stop()'));
  assert(duck.includes('function stop()'));
  assert(content('sw.js').includes('./audio-duck.mjs'));
 });
