@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-timing-rc8",
+  "version": "v0.8.6-switch-rc9",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 14,
-  "source_commit": "ba6092bfe860265b84c0ea716f2b4d6a417bd4c5",
+  "source_pr": 15,
+  "source_commit": "7cce265580edb8933dad1e34373d7755f7c29d30",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "HTML Audio preload + browser-side first clack startup latency in Training Settings; known good HTML + music ON remains; no music ducking guarantee"
+  "note": "RC9 test fixes audio mode selector stuck on running/paused session by auto-pausing and saving clock; HTML Audio+music ON retained; no exact 50% ducking"
 }

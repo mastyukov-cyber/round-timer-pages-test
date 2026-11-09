@@ -1,4 +1,4 @@
-name: Round Timer test PWA RC8 cue timing QA (no secrets)
+name: Round Timer test PWA RC9 mode-selector QA (no secrets)
 on:
   push:
     branches: [main]
