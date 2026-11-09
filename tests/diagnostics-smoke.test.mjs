@@ -10,11 +10,11 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-mix-rc6');
+  assert.equal(build.version,'v0.8.6-hold-rc7');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-mix-rc6'));
+  assert(sw.includes('round-timer-shell-v0.8.6-hold-rc7'));
   for(const path of ['audio-guard.mjs','html-audio.mjs','audio-duck.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
@@ -132,12 +132,22 @@ test('RC6 HTML setting is preview-only, default HTML, production unchanged',()=>
   assert.equal(JSON.parse(content('preview-build.json')).production,false);
 });
 
-test('RC6 labels reflect the device result and maintain session restoration',()=>{
+test('RC7 labels reflect persistent session experiment and stop control',()=>{
  const app=content('app.mjs');
  const duck=content('audio-duck.mjs');
- assert(app.includes('ВКЛ · музыка играет вместе'));
+ assert(app.includes('ВКЛ · совместный режим на весь раунд'));
  assert(app.includes('ВЫКЛ · музыка может прерваться'));
  assert(app.includes('sessionMix.stop()'));
- assert(duck.includes('function stop()'));
+ assert(duck.includes('function stop()'));assert(duck.includes('function begin()'));
  assert(content('sw.js').includes('./audio-duck.mjs'));
+});
+
+test('RC7 holds HTML mix through entire round, not per-signal',()=>{
+ const app=content('app.mjs');
+ const duck=content('audio-duck.mjs');
+ assert(app.includes('sessionMix.begin()'));
+ assert(!app.includes('sessionMix.cue('));
+ assert(duck.includes('begin,cue,stop'));
+ assert(app.includes('sessionMix.stop()'));
+ assert.equal(JSON.parse(content('preview-build.json')).version,'v0.8.6-hold-rc7');
 });

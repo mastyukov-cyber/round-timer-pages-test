@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-mix-rc6",
+  "version": "v0.8.6-hold-rc7",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 12,
-  "source_commit": "835eb0ca19816e6d16bb517b19f80bf40ae40ae1",
+  "source_pr": 13,
+  "source_commit": "e32d91a42365904c9812123c723d95a061fd237f",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "HTML Audio + music coexistence ON by default, no precise volume ducking; Web Audio comparison; device verification pending"
+  "note": "RC7 tests holding transient mixing through the round; no audio session reset after gong; Web Audio comparison"
 }

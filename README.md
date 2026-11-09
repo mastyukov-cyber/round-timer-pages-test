@@ -1,16 +1,12 @@
-# APP-001 Round Timer RC6 — music coexistence / installed iPhone PWA
+# APP-001 Round Timer RC7 — hold music coexistence across a round
 
-**Preview only.** Build `v0.8.6-mix-rc6`; source draft PR https://github.com/mastyukov/round-timer/pull/12, commit `835eb0ca19816e6d16bb517b19f80bf40ae40ae1`.
+**Test only:** `v0.8.6-hold-rc7`, cumulative source draft PR #13: https://github.com/mastyukov/round-timer/pull/13, SHA `e32d91a42365904c9812123c723d95a061fd237f`.
 
-Observed RC5 on real iPhone:
-- Home Screen minimize buzz: **not reproduced** (device check of RC5 only).
-- HTML Audio + transient enabled: other music continues at its original volume (no precise ducking).
-- HTML Audio with mode off: other music is interrupted when timer sounds.
-- Web Audio: music continues regardless of switch.
+Real iPhone RC6 feedback: HTML Audio with mixing ON played music through gong but music stopped immediately after; with mixing OFF it stopped at first clacks and did not return; Web Audio kept music playing without attenuation.
 
-RC6 changes: labels accurately say 'music plays together', defaults reset on preview to HTML Audio + coexistence ON, mixing switch hidden for Web Audio, Web Audio's ambient mix is not modified. Signals/audio sources and timer engine unchanged. **No promise of precise 50% other-app volume**.
+**RC7 hypothesis:** avoid switching the HTML Audio session category immediately after each cue. The transient category is held while the timer is running, then restored when the user pauses/resets or closes/switches apps. This can still fail on iOS; physical iPhone validation required. No promise of exact ~50% volume reduction. HTML Audio + mixing remains default in test settings; Web Audio is a comparison option.
 
-Preview: https://mastyukov-cyber.github.io/round-timer-pages-test/
-Version: https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
-
-Production timer remains https://mastyukov.github.io/round-timer/; no Cloudflare telemetry on preview. Prior test SHA for rollback: `74b126fcd470cf62f6fe7b90f01606b94a70f766`. iPhone RC6 verification PENDING.
+Preview URL https://mastyukov-cyber.github.io/round-timer-pages-test/
+Version https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
+Production https://mastyukov.github.io/round-timer/ **unchanged**.
+Previous test SHA `a9959fc938bfdf983f2d3f9d9e58385546b22ca0` retained for rollback. Production Cloudflare telemetry disabled for test origin.
