@@ -70,3 +70,7 @@ main { flex:1;min-height:0;display:flex;flex-direction:column; gap:clamp(8px,1.3
   .settings {height:48px;min-height:48px;}
 }
 @media (prefers-reduced-motion:reduce) {.progress-fill{transition:none;} }
+
+/* Preview-only version identifier inside the expanded training settings modal. */
+.preview-version {grid-column:1/-1;justify-self:start;min-width:0;margin:-5px 0 0 2px;font-size:clamp(.67rem,2.7vw,.8rem);font-weight:550;line-height:1.3;letter-spacing:.015em;color:#c9d7e7;white-space:nowrap;}
+@media (orientation:landscape) {.preview-version{margin-top:-2px;font-size:.68rem;}}

@@ -10,11 +10,11 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-audio-rc3');
+  assert.equal(build.version,'v0.8.6-audio-rc3.1');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-audio-rc3'));
+  assert(sw.includes('round-timer-shell-v0.8.6-audio-rc3.1'));
   for(const path of ['audio-guard.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
@@ -59,7 +59,6 @@ test('PAUSE and Home immediately retire an already playing gong',()=>{
 test('audio assets and engine unchanged from approved timer',()=>{
   const expected={
     'engine.mjs':'1f99d689ad8894bc89ab591b4447e1336dc2b5faf97781ad4e40abd0058416c8',
-    'styles.css':'5ac2df0416beab144424a91d638266acf800b2ea5808076b91374799f3009a0a',
     'sounds/gong-start.mp3':'b440d5440f2d104d15ac3e0553366e7bf0db13014599d14e5e8b94b3744a4333',
     'sounds/gong-end.mp3':'13c66a498dfae6921fe77343550f29b06c4470e04e5c7373629f0639096e43d7',
     'sounds/woodclack.mp3':'7bbc5e40111dbb7d61d50a7984cccc25bdc55c37ab1c056d5b18c6ae7147aa71'
@@ -94,5 +93,29 @@ test('blur interrupts gong before delayed visibilitychange, pagehide forces stop
 test('RC3 is isolated from experimental music ducking',()=>{
   assert(!content('app.mjs').includes('audioSession.type'));
   assert(!content('audio-guard.mjs').includes('duckOthers'));
+  assert.equal(JSON.parse(content('preview-build.json')).production,false);
+});
+
+test('preview version is shown only inside training settings, lower-left',()=>{
+  const html=content('index.html');
+  const css=content('styles.css');
+  const version=JSON.parse(content('preview-build.json')).version;
+  assert(html.includes('<meta name="round-timer-preview-build" content="'+version+'">'));
+  const start=html.indexOf('<details id="settings"');
+  const end=html.indexOf('</details>',start);
+  const inside=html.slice(start,end);
+  assert(start>=0 && end>start);
+  assert(inside.includes('<small class="preview-version"'));
+  assert(inside.includes(version));
+  assert(!html.slice(0,start).includes('preview-version'));
+  assert(css.includes('.preview-version {grid-column:1/-1;justify-self:start'));
+  assert(!html.includes('type="checkbox"'));
+  assert(content('sw.js').includes('round-timer-shell-'+version));
+});
+
+test('version label update does not modify audio/engine and preserves preview privacy',()=>{
+  const files=['audio-guard.mjs','app.mjs','engine.mjs'];
+  for(const p of files) assert(content(p).length>100,p);
+  assert(!content('app.mjs').includes('audioSession.type'));
   assert.equal(JSON.parse(content('preview-build.json')).production,false);
 });

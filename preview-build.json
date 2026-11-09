@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-audio-rc3",
+  "version": "v0.8.6-audio-rc3.1",
   "production": false,
   "source_repository": "mastyukov/round-timer",
   "source_pr": 9,
@@ -8,5 +8,5 @@
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "iPhone Audio-02 focus/visibility preemption experiment; no ducking in RC3"
+  "note": "Audio RC3 sound behavior unchanged; preview-only version label added in Settings"
 }
