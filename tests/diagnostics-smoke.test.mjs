@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
-import {createDelayedStartGuard,createActiveSoundController} from '../audio-guard.mjs';
+import {createDelayedStartGuard,createActiveSoundController,createAudioInterruptionGuard} from '../audio-guard.mjs';
 import {productionDiagnosticEndpoint} from '../diagnostics/sender.mjs';
 
 const content=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
@@ -10,11 +10,11 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-audio-rc2');
+  assert.equal(build.version,'v0.8.6-audio-rc3');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-audio-rc2'));
+  assert(sw.includes('round-timer-shell-v0.8.6-audio-rc3'));
   for(const path of ['audio-guard.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
@@ -67,4 +67,32 @@ test('audio assets and engine unchanged from approved timer',()=>{
   for(const [path,hash] of Object.entries(expected)){
     assert.equal(createHash('sha256').update(readFileSync(new URL('../'+path,import.meta.url))).digest('hex'),hash,path);
   }
+});
+
+test('blur interrupts gong before delayed visibilitychange, pagehide forces stop',()=>{
+  const mk=()=>{
+    const handlers=new Map();
+    return {hidden:false,
+      addEventListener(k,f){const s=handlers.get(k)||new Set();s.add(f);handlers.set(k,s);},
+      removeEventListener(k,f){handlers.get(k)?.delete(f);},
+      dispatch(k){for(const f of handlers.get(k)||[])f();}
+    };
+  };
+  const win=mk(),doc=mk(),events=[];
+  const guard=createAudioInterruptionGuard({windowTarget:win,documentTarget:doc,stop:reason=>events.push(reason)});
+  win.dispatch('blur');
+  assert.equal(guard.interrupted,true);
+  doc.hidden=true;doc.dispatch('visibilitychange');
+  assert.deepEqual(events,['blur']);
+  win.dispatch('pagehide');
+  assert.deepEqual(events,['blur','pagehide']);
+  doc.hidden=false;doc.dispatch('visibilitychange');
+  assert.equal(guard.interrupted,false);
+  guard.dispose();
+});
+
+test('RC3 is isolated from experimental music ducking',()=>{
+  assert(!content('app.mjs').includes('audioSession.type'));
+  assert(!content('audio-guard.mjs').includes('duckOthers'));
+  assert.equal(JSON.parse(content('preview-build.json')).production,false);
 });
