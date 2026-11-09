@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-switch-rc9",
+  "version": "v0.8.6-retire-rc10",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 15,
-  "source_commit": "7cce265580edb8933dad1e34373d7755f7c29d30",
+  "source_pr": 16,
+  "source_commit": "e1a9854f5d5f278dc6fd75f1cee66f9dcef1c0db",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "RC9 test fixes audio mode selector stuck on running/paused session by auto-pausing and saving clock; HTML Audio+music ON retained; no exact 50% ducking"
+  "note": "RC10 web audio background retirement, prevent old gong on reentry; HTML Audio music ON unchanged; Web Audio may need Pause/Continue for future cues"
 }
