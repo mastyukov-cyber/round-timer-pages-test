@@ -1,11 +1,13 @@
-# APP-001 Round Timer HTML Audio RC4 — test only
+# APP-001 Round Timer — experimental music ducking (test-only)
 
-Build: `v0.8.6-html-rc4`. Source draft PR https://github.com/mastyukov/round-timer/pull/10 , SHA `5b421478581ed3695fb23d6ae6a9ed54b641c7c2`.
+Build `v0.8.6-duck-rc5`. Source draft PR #11 https://github.com/mastyukov/round-timer/pull/11 at `65701f1f0fa599d9e826c2863fbf1fb3f1c40a9c`.
 
-Installed iPhone PWA AUDIO-02 investigation. Settings show HTML Audio experiment (default) and Web Audio (control). HTML Audio mutes and pauses on Home/blur. iOS may block automatic cues without a user gesture, so real iPhone testing is required.
+In training settings: music ducking ON (default, target approximately 50%, system-controlled) or OFF. iOS must support `navigator.audioSession.type='transient'`. Only active briefly while cue plays, then restores previous type. If unsupported, the switch is disabled. Do not claim actual precise volume control. Changing audio type may fail to produce gong audio on some versions of iOS and when silent switch is on.
 
-Production timer https://mastyukov.github.io/round-timer/ unchanged; production Cloudflare telemetry disabled on preview. Music ducking 50% is a separate future experiment.
+Two playback transports (HTML Audio and Web Audio) remain available in preview settings. Test Bluetooth speaker, gong/pause/Home and music restoration. This is *not* approval to merge PRs.
+
+Production https://mastyukov.github.io/round-timer/ unchanged; production telemetry/Cloudflare disabled on preview.
 
 Preview https://mastyukov-cyber.github.io/round-timer-pages-test/
-Build metadata https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
-Previous test commit `074e66672d37a0020a8749b001b0c22feb5bbe83` for rollback.
+Build check https://mastyukov-cyber.github.io/round-timer-pages-test/preview-build.json
+Previous preview commit for rollback `c09d9520d82bead1c52c19f3a2b03e2ba55e5377`.

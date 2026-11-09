@@ -10,12 +10,12 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-html-rc4');
+  assert.equal(build.version,'v0.8.6-duck-rc5');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-html-rc4'));
-  for(const path of ['audio-guard.mjs','html-audio.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
+  assert(sw.includes('round-timer-shell-v0.8.6-duck-rc5'));
+  for(const path of ['audio-guard.mjs','html-audio.mjs','audio-duck.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
 });
@@ -90,9 +90,12 @@ test('blur interrupts gong before delayed visibilitychange, pagehide forces stop
   guard.dispose();
 });
 
-test('RC3 is isolated from experimental music ducking',()=>{
-  assert(!content('app.mjs').includes('audioSession.type'));
-  assert(!content('audio-guard.mjs').includes('duckOthers'));
+test('music ducking experiment remains preview-only',()=>{
+  assert(content('app.mjs').includes('PREVIEW_DUCK_KEY'));
+  assert(content('app.mjs').includes('ПРИГЛУШАТЬ МУЗЫКУ'));
+  assert(content('app.mjs').includes('isPreview'));
+  assert(content('audio-duck.mjs').includes("session.type='transient'"));
+  assert(!content('audio-duck.mjs').includes("session.type='transient-solo'"));
   assert.equal(JSON.parse(content('preview-build.json')).production,false);
 });
 
@@ -127,4 +130,14 @@ test('RC4 HTML setting is preview-only, default experiment, production unchanged
   assert(app.includes("ДВИЖОК ЗВУКА · ТЕСТ"));
   assert(sw.includes('./html-audio.mjs'));
   assert.equal(JSON.parse(content('preview-build.json')).production,false);
+});
+
+test('RC5 labels include optional ducking switch and restore guard',()=>{
+ const app=content('app.mjs');
+ const duck=content('audio-duck.mjs');
+ assert(app.includes('ВКЛ · цель ≈50%'));
+ assert(app.includes('ВЫКЛ · без приглушения'));
+ assert(app.includes('ducking.stop()'));
+ assert(duck.includes('function stop()'));
+ assert(content('sw.js').includes('./audio-duck.mjs'));
 });
