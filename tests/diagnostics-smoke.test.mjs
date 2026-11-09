@@ -10,11 +10,11 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-hold-rc7');
+  assert.equal(build.version,'v0.8.6-timing-rc8');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-hold-rc7'));
+  assert(sw.includes('round-timer-shell-v0.8.6-timing-rc8'));
   for(const path of ['audio-guard.mjs','html-audio.mjs','audio-duck.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
@@ -149,5 +149,14 @@ test('RC7 holds HTML mix through entire round, not per-signal',()=>{
  assert(!app.includes('sessionMix.cue('));
  assert(duck.includes('begin,cue,stop'));
  assert(app.includes('sessionMix.stop()'));
- assert.equal(JSON.parse(content('preview-build.json')).version,'v0.8.6-hold-rc7');
+ assert.equal(JSON.parse(content('preview-build.json')).version,'v0.8.6-timing-rc8');
+});
+
+test('RC8 preview first-clack latency is local and HTML-only',()=>{
+ const app=content('app.mjs'),html=content('html-audio.mjs');
+ assert(app.includes('Первый щелчок:'));
+ assert(app.includes('cueLatencyLabel.hidden=audioMode'));
+ assert(html.includes('element.load?.()'));
+ assert(!app.includes('ВКЛ · цель ≈50%'));
+ assert(content('sw.js').includes('round-timer-shell-v0.8.6-timing-rc8'));
 });

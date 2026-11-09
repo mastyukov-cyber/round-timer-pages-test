@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-hold-rc7",
+  "version": "v0.8.6-timing-rc8",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 13,
-  "source_commit": "e32d91a42365904c9812123c723d95a061fd237f",
+  "source_pr": 14,
+  "source_commit": "ba6092bfe860265b84c0ea716f2b4d6a417bd4c5",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "RC7 tests holding transient mixing through the round; no audio session reset after gong; Web Audio comparison"
+  "note": "HTML Audio preload + browser-side first clack startup latency in Training Settings; known good HTML + music ON remains; no music ducking guarantee"
 }
