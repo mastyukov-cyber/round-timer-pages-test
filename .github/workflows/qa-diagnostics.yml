@@ -1,4 +1,4 @@
-name: Round Timer test PWA held music session RC7 (no deploy / secrets)
+name: Round Timer test PWA RC8 cue timing QA (no secrets)
 on:
   push:
     branches: [main]
@@ -31,3 +31,5 @@ jobs:
           for f in app.mjs audio-guard.mjs html-audio.mjs audio-duck.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs; do node --check "$f"; done
       - name: Preview-only smoke, audio pause/background and origin safety
         run: node --test tests/*.test.mjs
+
+# Safe re-trigger after GitHub Actions reported failed runs with zero jobs (2026-11-09).
