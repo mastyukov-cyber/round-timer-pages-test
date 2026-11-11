@@ -7,3 +7,4 @@ iPhone RC12 reported missing warning sounds, delayed clicks, and settings allowi
 Independent regression on the exact TEST candidate commit `b285a052db811da31938a3ac4282e787afdbee5e`: **71/71 JavaScript PASS, 5/5 MP3 SHA-256 PASS**. Source RC13 regression: **128/128 JavaScript and 23/23 Python PASS**. Passing automated tests does not prove audible cues work on a real iPhone.
 
 Rollback TEST SHA: `03b9c6332c07dddc6b3a34ec3a2ab5e5ee5465a3` (RC12). Main production repo not changed.
+RC13 Pages redeploy trigger: re-queue previously cancelled GitHub Pages build; no application files changed.
