@@ -1,9 +1,13 @@
-name: Round Timer test PWA RC10 WebAudio lifecycle QA (no secrets)
+name: APP-001 RC11 QA — studio audio hashes, alerts and offline safety
 on:
   push:
     branches: [main]
     paths:
       - 'app.mjs'
+      - 'engine.mjs'
+      - 'styles.css'
+      - 'studio-audio-manifest.json'
+      - 'sounds/**'
       - 'audio-guard.mjs'
       - 'html-audio.mjs'
       - 'web-audio-retire.mjs'
@@ -28,7 +32,7 @@ jobs:
       - name: Syntax and required assets
         run: |
           set -euo pipefail
-          for f in index.html app.mjs audio-guard.mjs html-audio.mjs web-audio-retire.mjs audio-duck.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs privacy.html preview-build.json; do test -s "$f"; done
+          for f in index.html app.mjs audio-guard.mjs html-audio.mjs web-audio-retire.mjs audio-duck.mjs engine.mjs styles.css sw.js diagnostics/schema.mjs diagnostics/sender.mjs privacy.html preview-build.json studio-audio-manifest.json sounds/button.mp3 sounds/studio-gong-start.mp3 sounds/studio-gong-end.mp3 sounds/woodclack-single.mp3 sounds/woodclack-double.mp3; do test -s "$f"; done
           for f in app.mjs audio-guard.mjs html-audio.mjs web-audio-retire.mjs audio-duck.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs; do node --check "$f"; done
       - name: Preview-only smoke, audio pause/background and origin safety
         run: node --test tests/*.test.mjs
