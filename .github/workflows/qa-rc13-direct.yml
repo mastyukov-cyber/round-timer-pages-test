@@ -1,0 +1,26 @@
+name: APP-001 RC13 independent preview QA (original studio audio)
+on:
+  push:
+    branches: [qa/round-timer-rc13-direct-20261112]
+    paths: ['app.mjs','engine.mjs','html-audio.mjs','sw.js','styles.css','index.html','preview-build.json','tests/**','.github/workflows/qa-rc13-direct.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qa:
+    if: github.repository == 'mastyukov-cyber/round-timer-pages-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate RC13 TEST-only version, original audio and JavaScript syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const b=require('./preview-build.json');if(b.production!==false||b.source_pr!==20||b.source_commit!=='bab1056adbbe2f533eb724a839d0159498cfafbf'||b.version!=='v0.8.9-recovery-rc13')process.exit(1)"
+          for f in app.mjs engine.mjs html-audio.mjs sw.js audio-guard.mjs audio-duck.mjs web-audio-retire.mjs diagnostics/sender.mjs diagnostics/schema.mjs; do node --check "$f"; done
+          for f in sounds/button.mp3 sounds/studio-gong-start.mp3 sounds/studio-gong-end.mp3 sounds/woodclack-single.mp3 sounds/woodclack-double.mp3; do test -s "$f"; done
+      - name: Full independent regression tests and SHA-256 audio gate
+        run: node --test tests/*.test.mjs
