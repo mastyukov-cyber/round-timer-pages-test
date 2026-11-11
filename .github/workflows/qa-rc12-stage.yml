@@ -1,0 +1,97 @@
+name: APP-001 RC12 Stage in isolated preview branch
+on:
+  push:
+    branches: [qa/round-timer-audio-latency-rc12-20261111]
+    paths: ['.github/workflows/qa-rc12-stage.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  stage:
+    if: github.repository == 'mastyukov-cyber/round-timer-pages-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get exact reviewed source from draft PR19 commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://raw.githubusercontent.com/mastyukov/round-timer/686ec5d3c7590258bc4c08ba3d4d4bcd54a41c87'
+          for file in app.mjs engine.mjs html-audio.mjs sw.js; do
+            curl -fsSL --retry 3 "$base/site/$file" -o "$file"
+            test -s "$file"
+          done
+          curl -fsSL --retry 3 "$base/site/styles.css" -o /tmp/rc12-styles.css
+          for file in audio-latency-rc12.test.mjs studio-audio-logic.test.mjs; do
+            curl -fsSL --retry 3 "$base/tests/$file" -o "tests/$file"
+          done
+      - name: Apply minimal preview changes and verify sound hashes
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, hashlib
+          old='v0.8.7-studio-rc11'
+          new='v0.8.8-audio-rc12'
+          p=Path('index.html')
+          html=p.read_text(encoding='utf8')
+          assert html.count(old)==2, 'Expected RC11 preview badge twice'
+          p.write_text(html.replace(old,new),encoding='utf8')
+          p=Path('preview-build.json')
+          data=json.loads(p.read_text(encoding='utf8'))
+          assert data['production'] is False and data['version']==old
+          data.update(version=new,source_pr=19,source_commit='686ec5d3c7590258bc4c08ba3d4d4bcd54a41c87',tests='RC12 independent preview CI and SHA256 sound gate',note='Reduce HTML audio churn, 700ms earlier work cues, suppress START double sound, portrait height -5%, landscape slightly larger; TEST ONLY')
+          p.write_text(json.dumps(data,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          p=Path('styles.css')
+          css=p.read_text(encoding='utf8')
+          a='.main-button {flex:1;background:var(--accent);border:0;color:#091411;}'
+          assert css.count(a)==1
+          css=css.replace(a,a+'\n.main-button:active,.secondary-button:active,.close-settings:active {filter:brightness(1.13);transform:scale(.985);}')
+          rc12css=Path('/tmp/rc12-styles.css').read_text(encoding='utf8')
+          marker='/* RC12 preview style scale; original production stylesheet is untouched. */'
+          assert marker in rc12css and marker not in css
+          css+='\n'+rc12css[rc12css.index(marker):]
+          p.write_text(css,encoding='utf8')
+          for name in ('studio-audio-logic.test.mjs','audio-latency-rc12.test.mjs'):
+              p=Path('tests')/name
+              content=p.read_text(encoding='utf8')
+              assert '../site/' in content
+              p.write_text(content.replace('../site/','../'),encoding='utf8')
+          for name in ('diagnostics-smoke.test.mjs','audio-switch-rc9.test.mjs','cue-timing-preview.test.mjs','music-mix-preview.test.mjs','web-audio-retire.test.mjs'):
+              p=Path('tests')/name
+              content=p.read_text(encoding='utf8')
+              assert old in content, 'RC11 version not found: '+name
+              p.write_text(content.replace(old,new),encoding='utf8')
+          manifest=json.loads(Path('studio-audio-manifest.json').read_text(encoding='utf8'))
+          assert len(manifest['files'])==5
+          for entry in manifest['files']:
+              name=entry['name']
+              assert name in ('button.mp3','studio-gong-start.mp3','studio-gong-end.mp3','woodclack-single.mp3','woodclack-double.mp3')
+              sound=Path('sounds')/name
+              assert sound.is_file() and sound.stat().st_size==entry['bytes'],name
+              assert hashlib.sha256(sound.read_bytes()).hexdigest()==entry['sha256'],name
+          assert "const SOUND_PATHS=isPreview?" in Path('app.mjs').read_text()
+          assert 'HTML_WORK_CUE_LEAD_MS=700' in Path('app.mjs').read_text()
+          assert 'round-timer-shell-'+new in Path('sw.js').read_text()
+          assert new in Path('index.html').read_text()
+          print('PASS: RC12 preview stage, all five owner-recorded MP3s byte-exact')
+          
+          PY
+      - name: Run all tests and preserve studio files before commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs html-audio.mjs sw.js audio-guard.mjs web-audio-retire.mjs audio-duck.mjs diagnostics/sender.mjs diagnostics/schema.mjs; do node --check "$f"; done
+          node --test tests/*.test.mjs
+      - name: Commit only on QA branch, never to preview main
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'qa/round-timer-audio-latency-rc12-20261111'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.mjs engine.mjs html-audio.mjs sw.js styles.css index.html preview-build.json tests/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'test(rc12): independently verified preview source and tests'
+          git push origin HEAD:qa/round-timer-audio-latency-rc12-20261111

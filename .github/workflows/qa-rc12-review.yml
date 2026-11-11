@@ -1,0 +1,25 @@
+name: APP-001 RC12 Independent candidate CI
+on:
+  push:
+    branches: [qa/round-timer-audio-latency-rc12-20261111]
+    paths: ['app.mjs','engine.mjs','html-audio.mjs','sw.js','styles.css','index.html','tests/**','preview-build.json']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qa:
+    if: github.repository == 'mastyukov-cyber/round-timer-pages-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check preview identity and complete audio package
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const j=require('./preview-build.json');if(j.version!=='v0.8.8-audio-rc12'||j.production!==false||j.source_pr!==19||j.source_commit!=='686ec5d3c7590258bc4c08ba3d4d4bcd54a41c87')process.exit(1)"
+          for f in app.mjs engine.mjs html-audio.mjs sw.js audio-guard.mjs web-audio-retire.mjs audio-duck.mjs diagnostics/sender.mjs diagnostics/schema.mjs; do node --check "$f"; done
+      - name: Full RC12 QA, offline and real studio audio SHA256 gate
+        run: node --test tests/*.test.mjs
