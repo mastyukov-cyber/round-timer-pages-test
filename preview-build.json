@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.6-retire-rc10",
+  "version": "v0.8.7-studio-rc11",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 16,
-  "source_commit": "e1a9854f5d5f278dc6fd75f1cee66f9dcef1c0db",
+  "source_pr": 18,
+  "source_commit": "22f736f94382eb6327f6eab29854e289408d0c75",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "Preview QA must pass before iPhone release validation",
   "mac_required": false,
-  "note": "RC10 web audio background retirement, prevent old gong on reentry; HTML Audio music ON unchanged; Web Audio may need Pause/Continue for future cues"
+  "note": "RC11 studio audio: short gongs, double 10s, single 60/30/5-1, button sound, rest 0; TEST ONLY"
 }

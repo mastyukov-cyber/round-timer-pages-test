@@ -10,11 +10,11 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.6-retire-rc10');
+  assert.equal(build.version,'v0.8.7-studio-rc11');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.6-retire-rc10'));
+  assert(sw.includes('round-timer-shell-v0.8.7-studio-rc11'));
   for(const path of ['audio-guard.mjs','html-audio.mjs','audio-duck.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
@@ -56,9 +56,8 @@ test('PAUSE and Home immediately retire an already playing gong',()=>{
   assert.ok(sources[1].stopAt<=2.05);
 });
 
-test('audio assets and engine unchanged from approved timer',()=>{
+test('original sounds unchanged despite approved RC11 engine changes',()=>{
   const expected={
-    'engine.mjs':'1f99d689ad8894bc89ab591b4447e1336dc2b5faf97781ad4e40abd0058416c8',
     'sounds/gong-start.mp3':'b440d5440f2d104d15ac3e0553366e7bf0db13014599d14e5e8b94b3744a4333',
     'sounds/gong-end.mp3':'13c66a498dfae6921fe77343550f29b06c4470e04e5c7373629f0639096e43d7',
     'sounds/woodclack.mp3':'7bbc5e40111dbb7d61d50a7984cccc25bdc55c37ab1c056d5b18c6ae7147aa71'
@@ -149,7 +148,7 @@ test('RC7 holds HTML mix through entire round, not per-signal',()=>{
  assert(!app.includes('sessionMix.cue('));
  assert(duck.includes('begin,cue,stop'));
  assert(app.includes('sessionMix.stop()'));
- assert.equal(JSON.parse(content('preview-build.json')).version,'v0.8.6-retire-rc10');
+ assert.equal(JSON.parse(content('preview-build.json')).version,'v0.8.7-studio-rc11');
 });
 
 test('RC8 preview first-clack latency is local and HTML-only',()=>{
@@ -158,7 +157,7 @@ test('RC8 preview first-clack latency is local and HTML-only',()=>{
  assert(app.includes('cueLatencyLabel.hidden=audioMode'));
  assert(html.includes('element.load?.()'));
  assert(!app.includes('ВКЛ · цель ≈50%'));
- assert(content('sw.js').includes('round-timer-shell-v0.8.6-retire-rc10'));
+ assert(content('sw.js').includes('round-timer-shell-v0.8.7-studio-rc11'));
 });
 
 test('RC9 source enables the audio selector during a test session and pauses on change',()=>{
@@ -167,7 +166,7 @@ test('RC9 source enables the audio selector during a test session and pauses on 
  assert(app.includes('if(audioModeSelect)audioModeSelect.disabled=false'));
  assert(app.includes('if(locked&&el.settings.open&&!isPreview)'));
  assert(app.includes('Смена звука автоматически ставит таймер на паузу'));
- assert(content('sw.js').includes('round-timer-shell-v0.8.6-retire-rc10'));
+ assert(content('sw.js').includes('round-timer-shell-v0.8.7-studio-rc11'));
 });
 
 test('RC10 prevents stale WebAudio context from resuming old gong after iOS Home',()=>{
@@ -180,5 +179,5 @@ test('RC10 prevents stale WebAudio context from resuming old gong after iOS Home
  assert(app.includes('draw({notify:false}); // Never replay any skipped background gong/clacks.'));
  assert(helper.includes('old.close?.()'));
  assert(worker.includes('./web-audio-retire.mjs'));
- assert(worker.includes('round-timer-shell-v0.8.6-retire-rc10'));
+ assert(worker.includes('round-timer-shell-v0.8.7-studio-rc11'));
 });
