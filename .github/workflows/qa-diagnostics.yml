@@ -1,4 +1,4 @@
-name: APP-001 RC11 QA — studio audio hashes, alerts and offline safety
+name: APP-001 RC12 QA — iPhone audio timing, original MP3 hashes and offline
 on:
   push:
     branches: [main]
