@@ -1,0 +1,93 @@
+name: APP-001 RC13 isolated TEST staging
+on:
+  push:
+    branches: [qa/round-timer-rc13-sound-recovery-20261112]
+    paths: ['.github/workflows/qa-rc13-stage.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  stage:
+    if: github.repository == 'mastyukov-cyber/round-timer-pages-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download source code and regression tests from audited PR20 SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://raw.githubusercontent.com/mastyukov/round-timer/bab1056adbbe2f533eb724a839d0159498cfafbf'
+          for name in app.mjs engine.mjs html-audio.mjs sw.js; do
+            curl -fsSL --retry 3 "$base/site/$name" -o "$name"
+            test -s "$name"
+          done
+          for name in rc13-recovery.test.mjs audio-switch-browser-model.test.mjs audio-latency-rc12.test.mjs studio-audio-logic.test.mjs music-mix-preview.test.mjs; do
+            curl -fsSL --retry 3 "$base/tests/$name" -o "tests/$name"
+            test -s "tests/$name"
+          done
+      - name: Update preview safely and verify original MP3 SHA-256
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,hashlib
+          old='v0.8.8-audio-rc12'; new='v0.8.9-recovery-rc13'
+          def change(path,before,after):
+            file=Path(path); data=file.read_text(encoding='utf8')
+            assert data.count(before)==1, 'Expected single pattern '+path
+            file.write_text(data.replace(before,after),encoding='utf8')
+          change('index.html','<body class="phase-idle">\n  <div class="app-shell">','<body class="phase-idle">\n  <div id="settingsBackdrop" class="settings-backdrop" aria-hidden="true"></div>\n  <div class="app-shell">')
+          file=Path('index.html');html=file.read_text(encoding='utf8')
+          assert html.count(old)==2
+          file.write_text(html.replace(old,new),encoding='utf8')
+          change('styles.css','body { background:var(--background); color:#f6fff8; overscroll-behavior:none; -webkit-tap-highlight-color:transparent; }','body { background:var(--background); color:#f6fff8; overscroll-behavior:none; -webkit-tap-highlight-color:transparent; }\n.settings-backdrop {display:none;position:fixed;inset:0;z-index:90;background:#07101999;pointer-events:auto;touch-action:none;}\nbody.settings-visible .settings-backdrop {display:block;}')
+          p=Path('preview-build.json');m=json.loads(p.read_text(encoding='utf8'))
+          assert m['version']==old and m['production'] is False and m['source_pr']==19
+          m.update(version=new,source_pr=20,source_commit='bab1056adbbe2f533eb724a839d0159498cfafbf',tests='RC13 independent QA + all five original audio SHA256',note='Restored RC11 warning playback, reset HTML Audio default, pointerdown clicks, modal tap barrier. No music changes; TEST ONLY')
+          p.write_text(json.dumps(m,ensure_ascii=False,indent=2)+'\n',encoding='utf8')
+          for name in ('rc13-recovery.test.mjs','audio-switch-browser-model.test.mjs','audio-latency-rc12.test.mjs','studio-audio-logic.test.mjs','music-mix-preview.test.mjs'):
+            p=Path('tests')/name
+            text=p.read_text(encoding='utf8')
+            p.write_text(text.replace('../site/','../'),encoding='utf8')
+          for name in ('diagnostics-smoke.test.mjs','audio-switch-rc9.test.mjs','cue-timing-preview.test.mjs','web-audio-retire.test.mjs'):
+            p=Path('tests')/name;txt=p.read_text(encoding='utf8')
+            assert old in txt,name+' not on RC12'
+            p.write_text(txt.replace(old,new),encoding='utf8')
+          p=Path('tests/rc12-candidate-integrity.test.mjs');txt=p.read_text(encoding='utf8')
+          assert txt.count(old)>0
+          txt=txt.replace(old,new)
+          txt=txt.replace('source_pr,19','source_pr,20').replace('686ec5d3c7590258bc4c08ba3d4d4bcd54a41c87','bab1056adbbe2f533eb724a839d0159498cfafbf')
+          txt=txt.replace("assert(app.includes('HTML_WORK_CUE_LEAD_MS=700'));","assert(!app.includes('HTML_WORK_CUE_LEAD_MS=700'));")
+          txt=txt.replace("assert(app.includes('if(!startPause())buttonSound()'));","assert(app.includes('bindFastPress(el.start,()=>startPause()'));")
+          p.write_text(txt,encoding='utf8')
+          manifest=json.loads(Path('studio-audio-manifest.json').read_text(encoding='utf8'))
+          assert len(manifest['files'])==5
+          for item in manifest['files']:
+            name=item['name']; assert name in ('button.mp3','studio-gong-start.mp3','studio-gong-end.mp3','woodclack-single.mp3','woodclack-double.mp3')
+            data=(Path('sounds')/name).read_bytes()
+            assert len(data)==item['bytes'] and hashlib.sha256(data).hexdigest()==item['sha256'],name
+          assert 'round-timer-shell-'+new in Path('sw.js').read_text(encoding='utf8')
+          assert 'round-timer-preview-transport-rc13-v1' in Path('app.mjs').read_text(encoding='utf8')
+          assert 'settingsBackdrop' in Path('index.html').read_text(encoding='utf8')
+          assert 'body.settings-visible .settings-backdrop' in Path('styles.css').read_text(encoding='utf8')
+          Path('README.md').write_text('# APP-001 Round Timer RC13 (TEST ONLY)\n\nRestored original RC11 studio-warning sound controller after RC12 muted automatic cues on iPhone. Button sounds initiate on pointerdown; settings backdrop blocks underlying controls. Retains short original gongs, audio samples, zero rest, bright work/rest and RC12 typography. Music coexistence untested. Source PR #20.\n',encoding='utf8')
+          print('PASS: exact original five MP3 verified, RC13 settings and cue controls staged')
+          PY
+      - name: Verify no JavaScript syntax errors and all synthetic tests pass
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in app.mjs engine.mjs html-audio.mjs sw.js; do node --check "$name"; done
+          node --test tests/*.test.mjs
+      - name: Commit only to RC13 QA branch after PASS
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REF_NAME" = 'qa/round-timer-rc13-sound-recovery-20261112'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.mjs engine.mjs html-audio.mjs sw.js styles.css index.html preview-build.json README.md tests/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'test(rc13): restore warning sounds and block touches behind settings'
+          git push origin HEAD:qa/round-timer-rc13-sound-recovery-20261112
