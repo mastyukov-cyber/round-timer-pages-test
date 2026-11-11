@@ -1,4 +1,4 @@
-name: APP-001 RC11 — stage five approved sounds to TEST only
+name: APP-001 RC11 stage verified sounds to preview
 on:
   push:
     branches: [main]
@@ -17,33 +17,30 @@ jobs:
     timeout-minutes: 6
     steps:
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: true
-      - name: Download five original studio MP3 files and verify SHA-256
+      - name: Fetch five approved sounds with SHA-256 verification
         shell: bash
         run: |
           set -euo pipefail
-          ref='22f736f94382eb6327f6eab29854e289408d0c75'
-          source_url="https://raw.githubusercontent.com/mastyukov/round-timer/\$ref/site/sounds"
+          readonly ref='22f736f94382eb6327f6eab29854e289408d0c75'
+          readonly base="https://raw.githubusercontent.com/mastyukov/round-timer/$ref/site/sounds"
           mkdir -p sounds
-          while read -r sha size filename; do
-            test -n "\$filename"
-            case "\$filename" in
+          for item in \
+            '7568fbddf7d7e7af867a8f3d61cc1a39aa10b23239f71b691defd1514780e17e 12332 button.mp3' \
+            '5a11b07fa9056952b8aeb74996806ca707b5cc69dedac4d088a081fc64ecb55a 66092 studio-gong-end.mp3' \
+            'bc6e72b76bacdc54dd0bf0dcbc636ddaa9ec91d123b88e0f03c4e954038e9505 63020 studio-gong-start.mp3' \
+            '9801847a45300f972cf5d381e20bbbdf54f743c0bfd80293b38b2b0bd3439a28 27692 woodclack-double.mp3' \
+            '9b1287db452b68cfede024748dd8d5ed5755e61950509354b4e197e9193d2918 12332 woodclack-single.mp3'; do
+            read -r hash size name <<< "$item"
+            case "$name" in
               button.mp3|studio-gong-start.mp3|studio-gong-end.mp3|woodclack-single.mp3|woodclack-double.mp3) ;;
-              *) echo "Unexpected file: \$filename"; exit 1 ;;
+              *) echo "Unexpected name $name"; exit 1 ;;
             esac
-            curl --fail --silent --show-error --location --retry 3 --proto '=https' --tlsv1.2 "\$source_url/\$filename" --output "sounds/\$filename"
-            got_size=\$(wc -c < "sounds/\$filename" | tr -d ' ')
-            test "\$got_size" = "\$size" || { echo "SIZE MISMATCH \$filename"; exit 1; }
-            printf '%s  %s\n' "\$sha" "sounds/\$filename" | sha256sum -c -
-          done <<'VERIFIED_AUDIO'
-7568fbddf7d7e7af867a8f3d61cc1a39aa10b23239f71b691defd1514780e17e 12332 button.mp3
-5a11b07fa9056952b8aeb74996806ca707b5cc69dedac4d088a081fc64ecb55a 66092 studio-gong-end.mp3
-bc6e72b76bacdc54dd0bf0dcbc636ddaa9ec91d123b88e0f03c4e954038e9505 63020 studio-gong-start.mp3
-9801847a45300f972cf5d381e20bbbdf54f743c0bfd80293b38b2b0bd3439a28 27692 woodclack-double.mp3
-9b1287db452b68cfede024748dd8d5ed5755e61950509354b4e197e9193d2918 12332 woodclack-single.mp3
-VERIFIED_AUDIO
-      - name: Commit original audio to TEST repository only
+            curl --fail --silent --show-error --location --retry 3 "$base/$name" --output "sounds/$name"
+            actual=$(wc -c < "sounds/$name" | tr -d ' ')
+            test "$actual" = "$size" || { echo "SIZE FAIL: $name"; exit 1; }
+            printf '%s  %s\n' "$hash" "sounds/$name" | sha256sum -c -
+          done
+      - name: Commit verified MP3s only to preview main
         shell: bash
         run: |
           set -euo pipefail
@@ -51,8 +48,8 @@ VERIFIED_AUDIO
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add sounds/button.mp3 sounds/studio-gong-start.mp3 sounds/studio-gong-end.mp3 sounds/woodclack-single.mp3 sounds/woodclack-double.mp3
           if git diff --cached --quiet; then
-            echo 'Files already staged; nothing to commit.'
+            echo 'Nothing to commit: sounds already verified.'
             exit 0
           fi
-          git commit -m 'test(audio): stage five verified RC11 studio MP3 assets'
+          git commit -m 'test(audio): stage five verified RC11 MP3 files'
           git push origin HEAD:main
