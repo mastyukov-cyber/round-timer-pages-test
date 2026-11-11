@@ -1,0 +1,91 @@
+name: APP-001 RC11 code integration into TEST only
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/integrate-rc11.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  integrate:
+    if: github.repository == 'mastyukov-cyber/round-timer-pages-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch reviewed RC11 text files from immutable source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://raw.githubusercontent.com/mastyukov/round-timer/22f736f94382eb6327f6eab29854e289408d0c75'
+          for name in app.mjs engine.mjs html-audio.mjs sw.js; do
+            curl -fsSL --retry 3 "$base/site/$name" -o "$name"
+            test -s "$name"
+          done
+          curl -fsSL --retry 3 "$base/studio-audio-manifest.json" -o studio-audio-manifest.json
+          for name in studio-audio-assets.test.mjs studio-audio-logic.test.mjs; do
+            curl -fsSL --retry 3 "$base/tests/$name" -o "tests/$name"
+          done
+      - name: Apply new settings and check original MP3 SHA256
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, hashlib
+          old='v0.8.6-retire-rc10'; new='v0.8.7-studio-rc11'
+          def put_once(name,prev,next):
+              p=Path(name); s=p.read_text(encoding='utf8')
+              assert s.count(prev)==1, 'Unexpected anchor in '+name
+              p.write_text(s.replace(prev,next),encoding='utf8')
+          manifest=json.loads(Path('studio-audio-manifest.json').read_text(encoding='utf8'))
+          assert len(manifest['files'])==5
+          for info in manifest['files']:
+              name=info['name']; p=Path('sounds')/name
+              assert name in ('button.mp3','studio-gong-start.mp3','studio-gong-end.mp3','woodclack-single.mp3','woodclack-double.mp3')
+              data=p.read_bytes()
+              assert len(data)==info['bytes']
+              assert hashlib.sha256(data).hexdigest()==info['sha256'],name
+          put_once('styles.css','--accent:#68f59a; --background:#08190e;','--accent:#a7ff55; --background:#11220c;')
+          put_once('styles.css','--accent:#ff7575; --background:#260c0f;','--accent:#ff4255; --background:#2b0a10;')
+          html=Path('index.html'); source=html.read_text(encoding='utf8')
+          assert source.count(old)==2
+          html.write_text(source.replace(old,new),encoding='utf8')
+          meta=Path('preview-build.json'); build=json.loads(meta.read_text(encoding='utf8'))
+          assert build['version']==old and build['production'] is False
+          build.update(version=new,source_pr=18,source_commit='22f736f94382eb6327f6eab29854e289408d0c75',note='RC11 studio audio: short gongs, double 10s, single 60/30/5-1, button sound, rest 0; TEST ONLY')
+          meta.write_text(json.dumps(build,ensure_ascii=False,indent=2),encoding='utf8')
+          for name in ('studio-audio-assets.test.mjs','studio-audio-logic.test.mjs'):
+              p=Path('tests')/name
+              p.write_text(p.read_text(encoding='utf8').replace('../site/','../'),encoding='utf8')
+          for name in ('audio-switch-rc9.test.mjs','cue-timing-preview.test.mjs','music-mix-preview.test.mjs','web-audio-retire.test.mjs'):
+              p=Path('tests')/name
+              s=p.read_text(encoding='utf8').replace('round-timer-shell-'+old,'round-timer-shell-'+new)
+              p.write_text(s,encoding='utf8')
+          p=Path('tests/diagnostics-smoke.test.mjs'); smoke=p.read_text(encoding='utf8')
+          assert "'engine.mjs':'1f99d689ad8894bc89ab591b4447e1336dc2b5faf97781ad4e40abd0058416c8'" in smoke
+          smoke=''.join(line for line in smoke.splitlines(keepends=True) if "'engine.mjs':'1f99d689ad8894bc89ab591b4447e1336dc2b5faf97781ad4e40abd0058416c8'" not in line)
+          smoke=smoke.replace("test('audio assets and engine unchanged from approved timer'","test('original sounds unchanged despite approved RC11 engine changes'")
+          smoke=smoke.replace(old,new)
+          p.write_text(smoke,encoding='utf8')
+          Path('README.md').write_text('APP-001 TEST RC11 — user-recorded studio sounds, short gongs, single 60/30/5–1, double 10, button clicks, rest 0, bright work/rest colors. Draft PR 18, production unchanged.',encoding='utf8')
+          assert 'const SOUND_PATHS=isPreview?' in Path('app.mjs').read_text(encoding='utf8')
+          assert 'round-timer-shell-'+new in Path('sw.js').read_text(encoding='utf8')
+          print('PASS: five sound hashes verified; RC11 test site source assembled')
+          PY
+      - name: Run all synthetic JavaScript QA before changing preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs html-audio.mjs sw.js; do node --check "$f"; done
+          node --test tests/*.test.mjs
+      - name: Commit TEST code only after PASS
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add app.mjs engine.mjs html-audio.mjs styles.css sw.js studio-audio-manifest.json index.html preview-build.json README.md tests/
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m 'test(rc11): apply user-recorded studio sounds and color updates'
+          git push origin HEAD:main
