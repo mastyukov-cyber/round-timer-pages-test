@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.8-audio-rc12",
+  "version": "v0.8.9-recovery-rc13",
   "production": false,
   "source_repository": "mastyukov/round-timer",
-  "source_pr": 19,
-  "source_commit": "686ec5d3c7590258bc4c08ba3d4d4bcd54a41c87",
+  "source_pr": 20,
+  "source_commit": "bab1056adbbe2f533eb724a839d0159498cfafbf",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
-  "tests": "RC12 independent preview CI and SHA256 sound gate",
+  "tests": "RC13 source CI and independent preview regression QA",
   "mac_required": false,
-  "note": "Reduce HTML audio churn, 700ms earlier work cues, suppress START double sound, portrait height -5%, landscape slightly larger; TEST ONLY"
+  "note": "Restored RC11 HTML warnings and exact thresholds; pointerdown button sound, safe modal backdrop, HTML default. iPhone physical test pending."
 }
