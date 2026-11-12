@@ -23,7 +23,7 @@ test('RC14 portrait and landscape digits grow slightly without removing responsi
  assert(app.includes('isPreview?4.05:4.3164'));
  assert(app.includes('isPreview?1.79:1.587'));
  assert(app.includes('isPreview?(portrait?1.045:.985):.98'));
- assert(app.includes('isPreview?1.01:.95'));
+ assert(app.includes('isPreview?(portrait?1.01:.985):.95'));
  assert(app.includes('Math.min(byWidth,byHeight,620)'));
  assert(css.includes('transform:scale(1.38,4.05)'));
  assert(css.includes('transform:scale(1.79,1.79)'));
@@ -32,7 +32,7 @@ test('RC14 portrait and landscape digits grow slightly without removing responsi
 test('RC14 round counter grows in both orientations and remains width-clamped',()=>{
  const app=file('app.mjs');
  assert(app.includes('window.innerWidth*.068'));
- assert(app.includes('window.innerHeight*.052'));
+ assert(app.includes('window.innerHeight*.037'));
  assert(app.includes('if(w>max)size*=max/w;'));
  assert(app.includes('label.style.fontSize='));
 });
