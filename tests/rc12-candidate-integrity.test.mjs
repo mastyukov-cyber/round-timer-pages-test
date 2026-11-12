@@ -6,10 +6,10 @@ const raw=(name)=>readFileSync(new URL('../'+name,import.meta.url));
 const txt=(name)=>raw(name).toString('utf8');
 test('RC12 candidate is TEST-only from audited PR19 and visible to iPhone',()=>{
  const m=JSON.parse(txt('preview-build.json'));
- assert.equal(m.version,'v0.8.9-recovery-rc13');
+ assert.equal(m.version,'v0.8.10-mix-rc14');
  assert.equal(m.production,false);
- assert.equal(m.source_pr,20);
- assert.equal(m.source_commit,'bab1056adbbe2f533eb724a839d0159498cfafbf');
+ assert.equal(m.source_pr,21);
+ assert.equal(m.source_commit,'55eef8cc202261f0d83b154b7aa6fdb0183ed637');
  assert(txt('index.html').includes('ТЕСТОВАЯ ВЕРСИЯ · '+m.version));
  assert(txt('sw.js').includes('round-timer-shell-'+m.version));
 });

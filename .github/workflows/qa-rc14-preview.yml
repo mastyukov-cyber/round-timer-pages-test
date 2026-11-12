@@ -1,0 +1,36 @@
+name: APP-001 RC14 preview independent sound + music regression
+on:
+  push:
+    branches: [qa/round-timer-music-reset-buttons-rc14-20261112]
+    paths:
+      - '.github/workflows/qa-rc14-preview.yml'
+      - 'app.mjs'
+      - 'audio-guard.mjs'
+      - 'audio-duck.mjs'
+      - 'sw.js'
+      - 'index.html'
+      - 'preview-build.json'
+      - 'tests/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    if: github.repository == 'mastyukov-cyber/round-timer-pages-test'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check exact TEST identity and browser asset syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node -e "const b=require('./preview-build.json');if(b.production!==false||b.version!=='v0.8.10-mix-rc14'||b.source_pr!==21||b.source_commit!=='55eef8cc202261f0d83b154b7aa6fdb0183ed637')process.exit(1)"
+          for f in app.mjs audio-guard.mjs audio-duck.mjs sw.js engine.mjs html-audio.mjs web-audio-retire.mjs diagnostics/sender.mjs diagnostics/schema.mjs; do node --check "$f"; done
+      - name: Verify music reset, complete button clicks, offline and original MP3s
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --test tests/*.test.mjs
