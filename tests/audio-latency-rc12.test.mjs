@@ -27,8 +27,9 @@ test('RC13 restores RC11 HTML element reset before repeated automatic cues',()=>
   isActive:()=>true
  });
  output.play('start');output.play('single');output.play('ten-double');output.play('single');
- assert.equal(items[0].plays,1);assert(items[0].pauses>=3);
- assert.equal(items[2].plays,2);assert.equal(items[4].plays,1);
+ assert.equal(items[0].plays,1);assert.equal(items[0].pauses,1,'played gong stops once, not before every later cue');
+ assert.equal(items[2].plays,3,'single-hit sample used for every requested clack');
+ assert.equal(items[4].plays,0,'original double recording preserved but not played in RC15');
 });
 test('RC13 START keeps training cue priority and pointerdown first for button click',()=>{
  const app=source('app.mjs');
