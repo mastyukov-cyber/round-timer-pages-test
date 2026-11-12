@@ -3,7 +3,7 @@ import {createDelayedStartGuard,createActiveSoundController,createAudioInterrupt
 import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
-const DIAGNOSTICS_VERSION='0.8.13';
+const DIAGNOSTICS_VERSION='0.8.14';
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
@@ -163,7 +163,7 @@ function sound(type){
    });
    return;
  }
- const offsets=isPreview&&type==='ten-double'?[0,.130]:type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
+ const offsets=isPreview&&type==='ten-double'?[0,.135]:type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
  for(const offset of offsets){
    try {activeSounds.play({context:audioContext,buffer:sample,offset,volume:kind==='button'?.72:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});}
    catch(_){void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});}
@@ -290,8 +290,9 @@ function fitClock(force=false){
  ctx.font=`900 100px ${st.fontFamily}`;
  const raw=ctx.measureText('88:88').width-100*.055*4;
  const scaleX=portrait?(isPreview?1.38:1.2):(isPreview?1.79:1.587),scaleY=portrait?(isPreview?4.05:4.3164):(isPreview?1.79:1.587);
- const byWidth=(frame.clientWidth*(isPreview?1.045:.98))/(raw/100)/scaleX;
- const byHeight=(frame.clientHeight*(isPreview?1.01:.95))/scaleY;
+ // In landscape the expanded round count must not force a smaller or cropped clock.
+ const byWidth=(frame.clientWidth*(isPreview?(portrait?1.045:.985):.98))/(raw/100)/scaleX;
+ const byHeight=(frame.clientHeight*(isPreview?(portrait?1.01:.985):.95))/scaleY;
  const size=Math.max(15,Math.min(byWidth,byHeight,620));
  el.clock.style.fontSize=`${size}px`;
  fitLabels();
@@ -301,7 +302,8 @@ function fitLabels(){
  const ctx=(fitClock.labelCanvas||(fitClock.labelCanvas=document.createElement('canvas'))).getContext('2d');
  if(el.roundCount){
   const st=getComputedStyle(el.round);
-  let base=portrait?window.innerWidth*.068:window.innerHeight*.052;
+  // Use a compact landscape round heading so the clock receives maximal height.
+   let base=portrait?window.innerWidth*.068:window.innerHeight*.037;
   base=Math.max(12,Math.min(base,32));
   ctx.font=`900 ${base}px ${st.fontFamily}`;
   const wordWidth=ctx.measureText('РАУНД').width;
