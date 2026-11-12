@@ -19,20 +19,20 @@ test('RC14 explicit zero rest and nonzero preparation remain selectable',()=>{
 });
 test('RC14 portrait and landscape digits grow slightly without removing responsive size limits',()=>{
  const app=file('app.mjs'),css=file('styles.css');
- assert(app.includes('isPreview?1.30:1.2'));
- assert(app.includes('isPreview?4.17:4.3164'));
- assert(app.includes('isPreview?1.67:1.587'));
- assert(app.includes('isPreview?1.015:.98'));
+ assert(app.includes('isPreview?1.34:1.2'));
+ assert(app.includes('isPreview?3.94:4.3164'));
+ assert(app.includes('isPreview?1.73:1.587'));
+ assert(app.includes('isPreview?1.025:.98'));
  assert(app.includes('isPreview?.985:.95'));
  assert(app.includes('Math.min(byWidth,byHeight,620)'));
- assert(css.includes('transform:scale(1.30,4.17)'));
- assert(css.includes('transform:scale(1.67,1.67)'));
+ assert(css.includes('transform:scale(1.34,3.94)'));
+ assert(css.includes('transform:scale(1.73,1.73)'));
  assert(css.includes('html,body { margin:0; height:100%; width:100%; overflow:hidden; }'));
 });
 test('RC14 round counter grows in both orientations and remains width-clamped',()=>{
  const app=file('app.mjs');
- assert(app.includes('isPreview?.101:.09'));
- assert(app.includes('isPreview?.082:.07'));
+ assert(app.includes('window.innerWidth*.068'));
+ assert(app.includes('window.innerHeight*.052'));
  assert(app.includes('if(w>max)size*=max/w;'));
  assert(app.includes('label.style.fontSize='));
 });
@@ -41,7 +41,7 @@ test('RC14 preserves independently approved studio audio, work/rest colors and m
  assert(app.includes('preserveMix:keepForegroundMix()'));
  assert(css.includes('body.phase-work { --accent:#a7ff55'));
  assert(css.includes('body.phase-rest { --accent:#ff4255'));
- assert(sw.includes('round-timer-shell-v0.8.10-mix-rc14'));
+ assert(sw.includes('round-timer-shell-v0.8.11-rc15'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
    assert(sw.includes("'./sounds/"+name+".mp3'"));
  }
