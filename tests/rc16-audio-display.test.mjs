@@ -51,7 +51,7 @@ test('RC16 gongs and clacks keep original unshaped WebAudio timing and gain',()=
  assert(near(sources[1].starts[0],7.123));
  const app=source('app.mjs');
  assert(app.includes("volume:kind==='button'?.72:kind==='clack'?.96:.9"));
- assert(app.includes("type==='ten-double'?[0,.135]"));
+ assert(app.includes("type==='ten-double'?[0,.140]"));
 });
 test('RC16 counter is 1.5× RC15 and moved down in both orientations',()=>{
  const app=source('app.mjs'),css=source('styles.css'),index=source('index.html');
@@ -64,20 +64,20 @@ test('RC16 counter is 1.5× RC15 and moved down in both orientations',()=>{
 });
 test('RC16 larger countdown is responsive and original timer model unchanged',()=>{
  const app=source('app.mjs'),css=source('styles.css');
- assert(app.includes('isPreview?1.38:1.2'));
+ assert(app.includes('isPreview?1.51:1.2'));
  assert(app.includes('isPreview?4.05:4.3164'));
- assert(app.includes('isPreview?1.79:1.587'));
- assert(app.includes('isPreview?(portrait?1.045:.985):.98'));
+ assert(app.includes('isPreview?2.23:1.587'));
+ assert(app.includes('isPreview?.965:.98'));
  assert(app.includes('isPreview?(portrait?1.01:.985):.95'));
- assert(css.includes('transform:scale(1.38,4.05)'));
- assert(css.includes('transform:scale(1.79,1.79)'));
+ assert(css.includes('transform:scale(1.51,4.05)'));
+ assert(css.includes('transform:scale(2.23,1.79)'));
  assert(app.includes('Math.min(byWidth,byHeight,620)'));
 });
 test('RC16 TEST identity is consistent and never production',()=>{
  const build=JSON.parse(source('preview-build.json')),html=source('index.html'),sw=source('sw.js');
- assert.equal(build.version,'v0.8.14-rc18');
+ assert.equal(build.version,'v0.8.15-rc19');
  assert.equal(build.production,false);
- assert.equal(build.source_commit,'12aeecc200124e3a67d76a85ea9545850c94c9e0');
- assert(html.includes('ТЕСТОВАЯ ВЕРСИЯ · v0.8.14-rc18'));
- assert(sw.includes('round-timer-shell-v0.8.14-rc18'));
+ assert.equal(build.source_commit,'7e80423fdfbf3d64068c8abcee0d413956980960');
+ assert(html.includes('ТЕСТОВАЯ ВЕРСИЯ · v0.8.15-rc19'));
+ assert(sw.includes('round-timer-shell-v0.8.15-rc19'));
 });

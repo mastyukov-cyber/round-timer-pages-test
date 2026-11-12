@@ -17,6 +17,8 @@ permissions:
   contents: read
 jobs:
   test:
+    # RC18 release gate is version-pinned. Skip on newer RC19 PRs.
+    if: github.event_name == 'push' || github.head_ref == 'qa/round-timer-rc18-20261112'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:

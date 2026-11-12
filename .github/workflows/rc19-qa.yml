@@ -1,0 +1,45 @@
+name: APP-001 RC19 — 140ms and full-width portrait/landscape QA (TEST only)
+on:
+  push:
+    branches: [qa/round-timer-rc19-20261112]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.mjs'
+      - 'html-audio.mjs'
+      - 'styles.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'preview-build.json'
+      - 'tests/**'
+      - '.github/workflows/rc19-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify JS syntax and TEST identity
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs audio-guard.mjs html-audio.mjs audio-duck.mjs sw.js; do node --check "$f"; done
+          node -e "const b=require('./preview-build.json');if(b.version!=='v0.8.15-rc19'||b.production!==false)process.exit(1)"
+      - name: Full synthetic regressions
+        run: node --test tests/*.test.mjs
+      - name: Verify five original MP3 files byte-identical
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const manifest=JSON.parse(readFileSync('studio-audio-manifest.json','utf8'));
+          if(manifest.files.length!==5)throw Error('Expected exactly 5 approved samples');
+          for(const f of manifest.files){
+            const bytes=readFileSync('sounds/'+f.name);
+            if(bytes.length!==f.bytes||createHash('sha256').update(bytes).digest('hex')!==f.sha256)throw Error('Original MP3 modified: '+f.name);
+          }
+          console.log('PASS: original MP3 files 5/5');
+          JS
