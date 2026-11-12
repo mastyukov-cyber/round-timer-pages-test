@@ -31,7 +31,20 @@ export function createActiveSoundController() {
     const gain = context.createGain();
     const at = context.currentTime + 0.008 + offset;
     source.buffer = buffer;
-    gain.gain.value = volume;
+    // RC16: only the button sample gets a softer attack/release to reduce
+    // harsh mixing with music from other iPhone apps. Gongs and clacks
+    // retain their exact timing, volume and envelope.
+    if (category === 'button') {
+      gain.gain.setValueAtTime(0.015, at);
+      gain.gain.linearRampToValueAtTime(volume, at + 0.004);
+      if (Number.isFinite(buffer?.duration) && buffer.duration > 0.025) {
+        const end = at + buffer.duration;
+        gain.gain.setValueAtTime(volume, end - 0.012);
+        gain.gain.linearRampToValueAtTime(0.015, end);
+      }
+    } else {
+      gain.gain.value = volume;
+    }
     source.connect(gain);
     gain.connect(context.destination);
     const entry = {source, gain, context, category, stopping: false};
