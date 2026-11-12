@@ -60,16 +60,16 @@ test('RC15 visual timer is unshifted while HTML cue requests advance by 250ms',(
  assert(app.includes('crossedCountdown(lastCuePhase||lastPhase,cuePhase)'));
  assert(app.includes("const phase=session?phaseNow():computePhase({...config,prepare:0},0);"));
 });
-test('RC15 shows 3x number, moves round closer, slightly wider but less tall portrait timer',()=>{
+test('RC16 shows 4.5x number, moves round closer, slightly wider but less tall portrait timer',()=>{
  const html=source('index.html'),css=source('styles.css'),app=source('app.mjs'),sw=source('sw.js');
  assert(html.includes('id="roundCount">1/3'));
- assert(css.includes('.round-count {font-size:3em'));
+ assert(css.includes('.round-count {font-size:4.5em'));
  assert(css.includes('transform:translateY(clamp(10px,2vh,20px))'));
- assert(css.includes('transform:scale(1.34,3.94)'));
- assert(css.includes('transform:scale(1.73,1.73)'));
+ assert(css.includes('transform:scale(1.38,4.05)'));
+ assert(css.includes('transform:scale(1.79,1.79)'));
  assert(app.includes('if(total>max)base*=max/total'));
- assert(sw.includes('round-timer-shell-v0.8.11-rc15'));
+ assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
  const build=JSON.parse(source('preview-build.json'));
- assert.equal(build.version,'v0.8.11-rc15');
+ assert.equal(build.version,'v0.8.12-rc16');
  assert.equal(build.production,false);
 });
