@@ -59,7 +59,7 @@ test('RC16 counter is 1.5× RC15 and moved down in both orientations',()=>{
  assert(app.includes('if(total>max)base*=max/total'));
  assert(css.includes('.round-count {font-size:4.5em'));
  assert(css.includes('translateY(clamp(20px,3.2vh,34px))'));
- assert(css.includes('translateY(clamp(11px,2.6vh,22px))'));
+ assert(css.includes('translateY(clamp(1px,.7vh,4px))'));
  assert(index.includes('id="roundCount" role="text"'));
 });
 test('RC16 larger countdown is responsive and original timer model unchanged',()=>{
