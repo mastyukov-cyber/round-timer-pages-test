@@ -17,6 +17,8 @@ permissions:
   contents: read
 jobs:
   test:
+    # RC15 is version-pinned. Do not fail unrelated future release PRs.
+    if: github.event_name == 'push' || github.head_ref == 'qa/round-timer-rc15-20261112'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
