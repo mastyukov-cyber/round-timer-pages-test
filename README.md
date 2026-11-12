@@ -1,19 +1,16 @@
-# APP-001 Round Timer — RC17 TEST
+# APP-001 Round Timer — RC18 TEST
 
-**Version:** `v0.8.13-rc17` — 12 November 2026. **Not a production release.**
+**Version** `v0.8.14-rc18` (12 November 2026, not production).
 
-Base TEST RC16: `649144d04336ff0be54cde180e1c90dee2801b9b`.
+Base: RC17 TEST SHA `12aeecc200124e3a67d76a85ea9545850c94c9e0`.
 
-Physical iPhone feedback: Web Audio cue timing is excellent; keep all RC16 typography, sound gains and original five MP3 intact.
+Requested final fixes:
+1. Ten-second double hit: **135 ms** between two approved stick samples, identical in Web Audio and dormant HTML fallback.
+2. Align **РАУНД** with bottom edge of large `1/3`, not vertically centered.
+3. Landscape countdown: maximize visual clock size within actual free height and viewport width, with compact round header and explicit safe fitting. No overflow/cropping and retain control buttons.
 
-RC17 changes:
-- Retire audio/mixing/latency controls from user settings and force Web Audio in TEST, ignoring old HTML Audio selections.
-- Ten-second double single-hit separation set to **130ms** in both Web Audio and dormant HTML fallback (between 115ms RC16 and 145ms older).
-- Replace the font '/' that hangs below digits with a centered CSS diagonal stroke between separate numeric spans; preserve width clamping and accessible round label.
-- Restore small-viewport height and redo clock fit when returning from the iPhone Home screen or reopening the PWA. Keep all main controls inside display bounds.
+Preserved: portrait clock layout, Web Audio, source MP3 5/5, working/background timer, music coexistence and simplified settings.
 
-All QA uses synthetic tests and exact hash verification. Physical iPhone validation still required for reopening several times and footer visibility.
+TEST URL: https://mastyukov-cyber.github.io/round-timer-pages-test/
 
-Test URL: https://mastyukov-cyber.github.io/round-timer-pages-test/
-
-Rollback TEST to RC16: `649144d04336ff0be54cde180e1c90dee2801b9b`. Never touch production `mastyukov/round-timer`.
+Rollback TEST to RC17: `12aeecc200124e3a67d76a85ea9545850c94c9e0`. Production `mastyukov/round-timer` untouched. Physical iPhone verification still required.
