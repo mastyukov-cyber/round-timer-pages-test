@@ -1,0 +1,45 @@
+name: APP-001 RC16 — isolated WebAudio and responsive UI QA (no deployment)
+on:
+  push:
+    branches: [qa/round-timer-rc16-20261112]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.mjs'
+      - 'audio-guard.mjs'
+      - 'styles.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/**'
+      - 'preview-build.json'
+      - '.github/workflows/rc16-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify JS syntax and TEST identity
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs audio-guard.mjs audio-duck.mjs html-audio.mjs web-audio-retire.mjs sw.js; do node --check "$f"; done
+          node -e "const v=require('./preview-build.json');if(v.version!=='v0.8.12-rc16'||v.production!==false)process.exit(1)"
+      - name: Full synthetic JS regression
+        run: node --test tests/*.test.mjs
+      - name: Original approved five MP3 unchanged
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const manifest=JSON.parse(readFileSync('studio-audio-manifest.json','utf8'));
+          if(manifest.files.length!==5)throw Error('Five studio MP3s are required');
+          for(const f of manifest.files){
+            const bytes=readFileSync('sounds/'+f.name);
+            if(bytes.length!==f.bytes||createHash('sha256').update(bytes).digest('hex')!==f.sha256)throw Error('Audio file modified: '+f.name);
+          }
+          console.log('PASS original MP3 5/5');
+          JS

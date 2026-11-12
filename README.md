@@ -1,11 +1,17 @@
-# APP-001 Round Timer — RC15 TEST
+# APP-001 — ROUND TIMER | RC16 TEST
 
-**Version:** `v0.8.11-rc15` · 2026-11-12 · **not production**.
+**Build:** `v0.8.12-rc16` · 12 November 2026 · not production.
 
-Base RC14 TEST commit: `a02e2e0736133a2eef7e096999dd23f7e162dae9`; initial code originated from source Draft PR #21.
+Base: TEST RC15 commit `244435d682161386bd3a064fc1dc8a683a0a77ef`.
 
-Changes: preserve external music playback, without demanding ducking; avoid needless pause/seek on inactive HTML media; alternate two preloaded button samples; request countdown warning cues 250ms ahead of visual threshold only for HTML Audio (physical iPhone latency remains unverified); replace 10-second double recording playback with two user-approved single-hit samples separated by 115ms (five original MP3s unchanged). Slightly larger timer display and phase text; reduced portrait digit height; round number 3× word font; label moved closer to countdown. Responsive width clamp retained.
+User's physical iPhone feedback: Web Audio gong and clack sound timing is excellent. Music from another iPhone music app may make the button tap sample slightly harsh.
 
-**TEST:** https://mastyukov-cyber.github.io/round-timer-pages-test/
+RC16: **keep Web Audio cue timing unchanged**. Change Web Audio button only: reduce volume from 0.90 to 0.72, soften attack over 4 ms and release over the last 12 ms. Do not edit any MP3. Enlarge countdown digits slightly in portrait and landscape with responsive sizing; move round heading down; enlarge only `1/3` from 3× to 4.5× the word “РАУНД”, retaining width fitting for long round counts.
 
-**Rollback:** preceding TEST main `a02e2e0736133a2eef7e096999dd23f7e162dae9` (RC14). No change to production `mastyukov/round-timer`.
+No changes to production `mastyukov/round-timer`; no music ducking request. TEST deployment only after isolated CI passes.
+
+TEST: https://mastyukov-cyber.github.io/round-timer-pages-test/
+
+Rollback SHA for TEST: `244435d682161386bd3a064fc1dc8a683a0a77ef`.
+
+Physical iPhone QA still required: button sound with background music, portrait and landscape readability, clipping and settings modal.

@@ -80,7 +80,7 @@ test('RC13 resets old test audio transport to HTML; music preference and user so
  assert(app.includes("PREVIEW_AUDIO_KEY='round-timer-preview-transport-rc13-v1'"));
  assert(app.includes("PREVIEW_MUSIC_KEY='round-timer-preview-music-mix-v1'"));
  assert(app.includes("audioMode=localStorage.getItem(PREVIEW_AUDIO_KEY)==='web'?'web':'html'"));
- assert(sw.includes('round-timer-shell-v0.8.11-rc15'));
+ assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
   assert(sw.includes("'./sounds/"+name+".mp3'"));
  }
