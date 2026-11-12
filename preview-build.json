@@ -4,9 +4,9 @@
   "production": false,
   "source_repository": "mastyukov/round-timer",
   "source_pr": 21,
-  "source_commit": "55eef8cc202261f0d83b154b7aa6fdb0183ed637",
+  "source_commit": "43fb3611e3ddf66c5f8ac59b2512eb75b3200528",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
   "tests": "RC14 TEST candidate: independent regression, original MP3 SHA-256, HTML audioSession and Web Audio button",
   "mac_required": false,
-  "note": "KEEP unpublished until independent QA; iPhone music test required."
+  "note": "RC14 TEST: maintain external music through RESET; full button clicks; slightly larger numerals and round label; defaults prepare 0s / rest 30s."
 }
