@@ -41,7 +41,7 @@ test('RC11 button clicks are separated from bells and use a dedicated player',()
  assert(app.includes("bindFastPress(el.settings.querySelector?.('summary')"));
  assert(html.includes('function playButton()'));
  assert(html.includes('stopAll({includeButton:false})'));
- assert(html.includes("type==='ten-double'&&elements.double"));
+ assert(html.includes("type==='ten-double'&&elements.clack2"));
 });
 test('RC11 work and rest colors use the approved bright palette',()=>{
  const css=file('styles.css');
@@ -50,7 +50,7 @@ test('RC11 work and rest colors use the approved bright palette',()=>{
 });
 test('RC11 offline service worker names all five original studio recordings',()=>{
  const sw=file('sw.js');
- assert(sw.includes('round-timer-shell-v0.8.10-mix-rc14'));
+ assert(sw.includes('round-timer-shell-v0.8.11-rc15'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
    assert(sw.includes("'./sounds/"+name+".mp3'"),name);
  }

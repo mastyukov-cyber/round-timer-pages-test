@@ -30,10 +30,10 @@ test('RC13 restores original HTML cue playback sequence, even after a gong',()=>
  });
  for(const cue of ['start','single','ten-double','single','single','single','single','single','end'])ctrl.play(cue);
  assert.equal(elements[0].playCount,1);
- assert.equal(elements[2].playCount,6);
- assert.equal(elements[4].playCount,1);
+ assert.equal(elements[2].playCount,7,'RC15 uses approved single hits, including first ten-second hit');
+ assert.equal(elements[4].playCount,0,'original double MP3 retained but no longer scheduled');
  assert.equal(elements[1].playCount,1);
- assert(elements[0].pauseCount>0,'RC11 stop/reset used before each cue');
+ assert.equal(elements[0].pauseCount,1,'RC15 stops the playing gong only once');
  ctrl.stopAll();
  assert(elements.every(e=>e.muted));
 });
@@ -80,7 +80,7 @@ test('RC13 resets old test audio transport to HTML; music preference and user so
  assert(app.includes("PREVIEW_AUDIO_KEY='round-timer-preview-transport-rc13-v1'"));
  assert(app.includes("PREVIEW_MUSIC_KEY='round-timer-preview-music-mix-v1'"));
  assert(app.includes("audioMode=localStorage.getItem(PREVIEW_AUDIO_KEY)==='web'?'web':'html'"));
- assert(sw.includes('round-timer-shell-v0.8.10-mix-rc14'));
+ assert(sw.includes('round-timer-shell-v0.8.11-rc15'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
   assert(sw.includes("'./sounds/"+name+".mp3'"));
  }

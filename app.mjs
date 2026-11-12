@@ -3,7 +3,7 @@ import {createDelayedStartGuard,createActiveSoundController,createAudioInterrupt
 import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
-const DIAGNOSTICS_VERSION='0.8.10';
+const DIAGNOSTICS_VERSION='0.8.11';
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
@@ -26,7 +26,7 @@ if(isPreview){
 }
 
 const byId=id=>document.getElementById(id);
-const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),form:byId('settingsForm')};
+const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),form:byId('settingsForm')};
 function durationLabel(sec) {
   if(sec===0) return '0 секунд';
   const min=Math.floor(sec/60), remainder=sec%60;
@@ -37,7 +37,7 @@ function durationLabel(sec) {
 for(const [element,choices] of [[el.work,WORK_CHOICES],[el.rest,REST_CHOICES],[el.rounds,ROUND_CHOICES],[el.prepare,PREPARE_CHOICES]]) {
   for(const c of choices) {const option=document.createElement('option');option.value=String(c);option.textContent=c==='infinity'?'∞ Бесконечно':element===el.rounds?String(c):durationLabel(c);element.append(option);}
 }
-let config=normalizeConfig({work:60}),session=null,lastPhase=null,audioContext=null,wakeLock=null,wasHidden=false;
+let config=normalizeConfig({work:60}),session=null,lastPhase=null,lastCuePhase=null,audioContext=null,wakeLock=null,wasHidden=false;
 function readConfig(){return normalizeConfig({work:el.work.value,rest:el.rest.value,rounds:el.rounds.value,prepare:el.prepare.value});}
 function updateInputs(c){el.work.value=c.work;el.rest.value=c.rest;el.rounds.value=c.rounds;el.prepare.value=c.prepare;}
 function save(){try{if(session)localStorage.setItem(STORAGE_KEY,JSON.stringify(session));else localStorage.removeItem(STORAGE_KEY);}catch(_){}}
@@ -152,7 +152,7 @@ function sound(type){
    return;
  }
  if(!audioContext||audioContext.state!=='running')return;
- const kind=type==='start'?'start':(type==='end'||type==='done')?'end':(isPreview&&type==='ten-double')?'double':(isPreview&&type==='button')?'button':'clack';
+ const kind=type==='start'?'start':(type==='end'||type==='done')?'end':(isPreview&&type==='ten-double')?'clack':(isPreview&&type==='button')?'button':'clack';
  const sample=soundBuffers[kind];
  if(!sample){
    const loading=preloadSounds();
@@ -161,7 +161,7 @@ function sound(type){
    });
    return;
  }
- const offsets=type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
+ const offsets=isPreview&&type==='ten-double'?[0,.115]:type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
  for(const offset of offsets){
    try {activeSounds.play({context:audioContext,buffer:sample,offset,volume:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});}
    catch(_){void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});}
@@ -287,8 +287,8 @@ function fitClock(force=false){
  const st=getComputedStyle(el.clock);
  ctx.font=`900 100px ${st.fontFamily}`;
  const raw=ctx.measureText('88:88').width-100*.055*4;
- const scaleX=portrait?(isPreview?1.30:1.2):(isPreview?1.67:1.587),scaleY=portrait?(isPreview?4.17:4.3164):(isPreview?1.67:1.587);
- const byWidth=(frame.clientWidth*(isPreview?1.015:.98))/(raw/100)/scaleX;
+ const scaleX=portrait?(isPreview?1.34:1.2):(isPreview?1.73:1.587),scaleY=portrait?(isPreview?3.94:4.3164):(isPreview?1.73:1.587);
+ const byWidth=(frame.clientWidth*(isPreview?1.025:.98))/(raw/100)/scaleX;
  const byHeight=(frame.clientHeight*(isPreview?.985:.95))/scaleY;
  const size=Math.max(15,Math.min(byWidth,byHeight,620));
  el.clock.style.fontSize=`${size}px`;
@@ -297,12 +297,25 @@ function fitClock(force=false){
 function fitLabels(){
  const portrait=window.matchMedia('(orientation: portrait)').matches;
  const ctx=(fitClock.labelCanvas||(fitClock.labelCanvas=document.createElement('canvas'))).getContext('2d');
- for(const label of [el.round,el.phase]){
+ if(el.roundCount){
+  const st=getComputedStyle(el.round);
+  let base=portrait?window.innerWidth*.068:window.innerHeight*.052;
+  base=Math.max(12,Math.min(base,32));
+  ctx.font=`900 ${base}px ${st.fontFamily}`;
+  const wordWidth=ctx.measureText('РАУНД').width;
+  ctx.font=`900 ${base*3}px ${st.fontFamily}`;
+  const numberWidth=ctx.measureText(el.roundCount.textContent||'12/12').width;
+  const total=wordWidth+numberWidth+base*.32;
+  const max=(el.round.parentElement.clientWidth||window.innerWidth)*.94;
+  if(total>max)base*=max/total;
+  el.round.style.fontSize=`${Math.max(10,base)}px`;
+ }
+ for(const label of [el.phase]){
   const st=getComputedStyle(label),root=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;
-  const ideal=label===el.round?(portrait?window.innerWidth*(isPreview?.101:.09):window.innerHeight*(isPreview?.082:.07)):(portrait?window.innerWidth*(isPreview?.077:.073):window.innerHeight*(isPreview?.054:.05));
+  const ideal=portrait?window.innerWidth*(isPreview?.081:.073):window.innerHeight*(isPreview?.057:.05);
   let size=Math.max(root*.82,Math.min(ideal,root*4.6));
   ctx.font=`900 ${size}px ${st.fontFamily}`;
-  const expected=label.textContent||'РАУНД 12 / ∞';
+  const expected=label.textContent||'ПОДГОТОВКА';
   const max=label.parentElement.clientWidth*.96;
   const w=ctx.measureText(expected).width;
   if(w>max)size*=max/w;
@@ -315,8 +328,14 @@ if('ResizeObserver' in window)new ResizeObserver(()=>fitClock()).observe(el.cloc
 function draw({notify=true}={}) {
   const phase=session?phaseNow():computePhase({...config,prepare:0},0);
   const type=session?phase.type:'idle';
+  // Foreground HTML cues get a small lead to offset Safari playback startup.
+  // Visual time and phase-change gongs remain unshifted.
+  const cuePhase=session&&session.status==='running'&&isPreview&&audioMode==='html'
+    ?computePhase(config,elapsedNow()+250):phase;
   document.body.className=`phase-${type}${el.settings.open?' settings-visible':''}`;
-  el.round.textContent=`РАУНД ${phase.round} / ${phase.rounds==='infinity'?'∞':phase.rounds}`;
+  const roundNumbers=`${phase.round}/${phase.rounds==='infinity'?'∞':phase.rounds}`;
+  if(el.roundCount)el.roundCount.textContent=roundNumbers;
+  else el.round.textContent=`РАУНД ${roundNumbers}`;
   el.clock.textContent=formatTime(phase.remainingMs);
   fitClock();
   el.phase.textContent={prepare:'ПОДГОТОВКА',work:'РАБОТА',rest:'ОТДЫХ',done:'ЗАВЕРШЕНО',idle:'ГОТОВ К СТАРТУ'}[type];
@@ -343,11 +362,12 @@ function draw({notify=true}={}) {
       else if(phase.type==='done')sound('end');
     } else {
       // Skip catch-up bursts on delayed ticks (e.g., the tab was briefly throttled).
-      const ticks=crossedCountdown(lastPhase,phase);
+      const ticks=crossedCountdown(lastCuePhase||lastPhase,cuePhase);
       if(ticks.length===1)sound(isPreview?(ticks[0]===10?'ten-double':'single'):(ticks[0]===30||ticks[0]===10)?'slow-double':'single');
     }
   }
   lastPhase=session?phase:null;
+  lastCuePhase=session?cuePhase:null;
 }
 function startPause(){
   if(el.settings.open)return false;
@@ -362,7 +382,7 @@ function startPause(){
     unlockAudio();
     config=readConfig();updateInputs(config);
     session={status:'running',config,elapsedBeforeMs:0,resumedAt:Date.now()};
-    el.settings.open=false;lastPhase=null;
+    el.settings.open=false;lastPhase=null;lastCuePhase=null;
     if(config.prepare===0)sound('start');
     else if(config.prepare<=5)sound('single');
     startupCuePlayed=config.prepare<=5;
@@ -374,7 +394,7 @@ function startPause(){
   save();draw({notify:false});
   return startupCuePlayed;
 }
-function reset(){if(el.settings.open)return;stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});session=null;lastPhase=null;config=readConfig();save();releaseScreenOn();draw({notify:false});}
+function reset(){if(el.settings.open)return;stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});session=null;lastPhase=null;lastCuePhase=null;config=readConfig();save();releaseScreenOn();draw({notify:false});}
 function buttonSound(){
  if(!isPreview||document.hidden||audioInterruption.interrupted)return false;
  if(audioMode==='html'&&htmlSounds){

@@ -1,0 +1,45 @@
+name: APP-001 RC15 — isolated audio and layout QA (no deploy)
+on:
+  push:
+    branches: [qa/round-timer-rc15-20261112]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.mjs'
+      - 'html-audio.mjs'
+      - 'styles.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'tests/**'
+      - 'preview-build.json'
+      - '.github/workflows/rc15-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify source and version
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs html-audio.mjs audio-guard.mjs audio-duck.mjs sw.js; do node --check "$f"; done
+          node -e "const v=require('./preview-build.json'); if(v.version!=='v0.8.11-rc15'||v.production!==false)process.exit(1)"
+      - name: Run all synthetic regression tests
+        run: node --test tests/*.test.mjs
+      - name: Verify unchanged five approved MP3 recordings
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const manifest=JSON.parse(readFileSync('studio-audio-manifest.json'));
+          if(manifest.files.length!==5)throw Error('Expected 5 assets');
+          for(const f of manifest.files){
+            const bytes=readFileSync('sounds/'+f.name);
+            if(bytes.length!==f.bytes||createHash('sha256').update(bytes).digest('hex')!==f.sha256)throw Error('MP3 changed: '+f.name);
+          }
+          console.log('PASS: 5 original studio MP3 unchanged');
+          JS

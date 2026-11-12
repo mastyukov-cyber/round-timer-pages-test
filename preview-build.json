@@ -1,12 +1,15 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.10-mix-rc14",
+  "version": "v0.8.11-rc15",
   "production": false,
-  "source_repository": "mastyukov/round-timer",
-  "source_pr": 21,
-  "source_commit": "43fb3611e3ddf66c5f8ac59b2512eb75b3200528",
+  "source_repository": "mastyukov-cyber/round-timer-pages-test",
+  "source_pr": null,
+  "source_commit": "a02e2e0736133a2eef7e096999dd23f7e162dae9",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
-  "tests": "RC14 TEST candidate: independent regression, original MP3 SHA-256, HTML audioSession and Web Audio button",
+  "tests": "RC15 audio startup, double clack timing, round counter and offline regression",
   "mac_required": false,
-  "note": "RC14 TEST: maintain external music through RESET; full button clicks; slightly larger numerals and round label; defaults prepare 0s / rest 30s."
+  "note": "RC15 TEST: keep external music; avoid unnecessary seeks, two button players, 250ms cue request lead, 115ms double hit, responsive 3x round count.",
+  "base_source_repository": "mastyukov/round-timer",
+  "base_source_pr": 21,
+  "base_source_commit": "43fb3611e3ddf66c5f8ac59b2512eb75b3200528"
 }

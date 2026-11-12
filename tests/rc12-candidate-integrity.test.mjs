@@ -6,10 +6,11 @@ const raw=(name)=>readFileSync(new URL('../'+name,import.meta.url));
 const txt=(name)=>raw(name).toString('utf8');
 test('RC12 candidate is TEST-only from audited PR19 and visible to iPhone',()=>{
  const m=JSON.parse(txt('preview-build.json'));
- assert.equal(m.version,'v0.8.10-mix-rc14');
+ assert.equal(m.version,'v0.8.11-rc15');
  assert.equal(m.production,false);
- assert.equal(m.source_pr,21);
- assert.equal(m.source_commit,'43fb3611e3ddf66c5f8ac59b2512eb75b3200528');
+ assert.equal(m.source_pr,null,'RC15 is authored only in isolated TEST repository');
+ assert.equal(m.base_source_pr,21);
+ assert.equal(m.base_source_commit,'43fb3611e3ddf66c5f8ac59b2512eb75b3200528');
  assert(txt('index.html').includes('ТЕСТОВАЯ ВЕРСИЯ · '+m.version));
  assert(txt('sw.js').includes('round-timer-shell-'+m.version));
 });
@@ -29,8 +30,8 @@ test('RC12 UI and sound priorities are isolated and preserve music mode',()=>{
  assert(app.includes('bindFastPress(el.start,()=>startPause()'));
  assert(app.includes('PREVIEW_MUSIC_KEY'));
  assert(app.includes('const SOUND_PATHS=isPreview?'));
- assert(css.includes('transform:scale(1.30,4.17)'));
- assert(css.includes('transform:scale(1.67,1.67)'));
+ assert(css.includes('transform:scale(1.34,3.94)'));
+ assert(css.includes('transform:scale(1.73,1.73)'));
  assert(css.includes('--accent:#a7ff55'));
  assert(css.includes('--accent:#ff4255'));
 });
