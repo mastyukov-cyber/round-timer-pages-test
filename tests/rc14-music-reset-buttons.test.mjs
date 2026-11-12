@@ -67,7 +67,7 @@ test('RC14 retains music category through foreground RESET, but switches it off 
 });
 test('RC14 sound assets and offline cache identical to prior five approved recordings',()=>{
  const app=src('app.mjs'),sw=src('sw.js');
- assert(sw.includes('round-timer-shell-v0.8.11-rc15'));
+ assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
  for(const item of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
     assert(app.includes("'./sounds/"+item+".mp3'"),item);
     assert(sw.includes("'./sounds/"+item+".mp3'"),item);
