@@ -12,7 +12,8 @@ test('RC13 countdown 60,30,10,5,4,3,2,1 is requested at exact thresholds, no 700
   assert.deepEqual(crossedCountdown(state(sec*1000+750),state(sec*1000+650)),[]);
  }
  assert.deepEqual(crossedCountdown(state(60000, 'work',60000),state(59900,'work',60000)),[]);
- assert.equal(normalizeConfig({work:60}).rest,0);
+ assert.equal(normalizeConfig({work:60}).rest,30);
+ assert.equal(normalizeConfig({work:60}).prepare,0);
  assert.equal(computePhase({work:60,rest:0,rounds:3,prepare:0},60000).key,'work-2');
 });
 test('RC13 restores original HTML cue playback sequence, even after a gong',()=>{
@@ -71,7 +72,7 @@ test('RC13 button playback uses pointerdown with click-only keyboard fallback an
  assert(app.includes('const played=pressed;pressed=false;'));
  assert(app.includes('if(!skip&&!played)buttonSound()'));
  assert(app.includes('suppress:willStartCue'));
- assert(app.includes('stopActiveAudio({preserveButton:isPreview})'));
+ assert(app.includes('stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()})'));
  assert(!app.includes('HTML_WORK_CUE_LEAD_MS=700'));
 });
 test('RC13 resets old test audio transport to HTML; music preference and user sound files unchanged',()=>{
@@ -79,7 +80,7 @@ test('RC13 resets old test audio transport to HTML; music preference and user so
  assert(app.includes("PREVIEW_AUDIO_KEY='round-timer-preview-transport-rc13-v1'"));
  assert(app.includes("PREVIEW_MUSIC_KEY='round-timer-preview-music-mix-v1'"));
  assert(app.includes("audioMode=localStorage.getItem(PREVIEW_AUDIO_KEY)==='web'?'web':'html'"));
- assert(sw.includes('round-timer-shell-v0.8.9-recovery-rc13'));
+ assert(sw.includes('round-timer-shell-v0.8.10-mix-rc14'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
   assert(sw.includes("'./sounds/"+name+".mp3'"));
  }

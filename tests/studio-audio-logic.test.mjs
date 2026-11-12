@@ -6,8 +6,11 @@ const file=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const state=(remaining,duration=120000,type='work')=>({
  type,key:type+'-1',durationMs:duration,remainingMs:remaining
 });
-test('RC11 defaults to zero seconds rest but respects explicit values',()=>{
- assert.equal(normalizeConfig({work:60}).rest,0);
+test('RC14 defaults to 30 seconds rest and zero preparation but respects explicit values',()=>{
+ assert.equal(normalizeConfig({work:60}).rest,30);
+ assert.equal(normalizeConfig({work:60}).prepare,0);
+ assert.equal(normalizeConfig({work:60,rest:0,prepare:5}).rest,0);
+ assert.equal(normalizeConfig({work:60,rest:0,prepare:5}).prepare,5);
  assert.equal(normalizeConfig({work:120,rest:30}).rest,30);
  assert.equal(computePhase({work:60,rounds:3,rest:0,prepare:0},60000).key,'work-2');
 });
@@ -47,7 +50,7 @@ test('RC11 work and rest colors use the approved bright palette',()=>{
 });
 test('RC11 offline service worker names all five original studio recordings',()=>{
  const sw=file('sw.js');
- assert(sw.includes('round-timer-shell-v0.8.9-recovery-rc13'));
+ assert(sw.includes('round-timer-shell-v0.8.10-mix-rc14'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
    assert(sw.includes("'./sounds/"+name+".mp3'"),name);
  }
