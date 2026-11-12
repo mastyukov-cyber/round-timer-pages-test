@@ -1,14 +1,14 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.13-rc17",
+  "version": "v0.8.14-rc18",
   "production": false,
   "source_repository": "mastyukov-cyber/round-timer-pages-test",
   "source_pr": null,
-  "source_commit": "649144d04336ff0be54cde180e1c90dee2801b9b",
+  "source_commit": "12aeecc200124e3a67d76a85ea9545850c94c9e0",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
-  "tests": "RC17 Web Audio only UI, 130ms double strike, centered slash, iOS PWA relaunch layout, offline and studio assets",
+  "tests": "RC18 135ms double cue, round heading bottom-alignment, maximized safe landscape clock, offline/asset regression",
   "mac_required": false,
-  "note": "RC17 TEST: Web Audio preferred (audio QA settings disabled); 130ms interval at 10sec; slash drawn geometrically centered between round numerals; stable 100svh viewport and fitClock on pageshow/focus/visibility; original MP3 and RC16 typography retained.",
+  "note": "RC18 TEST: preserved Web Audio mix, button smoothing, all studio sounds, portrait layout; changed 10s double to 135ms; bottom-aligned round word; compact landscape heading and fitClock based on available height/width without cropping. Real iPhone QA required.",
   "base_source_repository": "mastyukov/round-timer",
   "base_source_pr": 21,
   "base_source_commit": "43fb3611e3ddf66c5f8ac59b2512eb75b3200528"
