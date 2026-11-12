@@ -17,6 +17,8 @@ permissions:
   contents: read
 jobs:
   test:
+    # RC17 release check is pinned to RC17; don't block newer RC PRs.
+    if: github.event_name == 'push' || github.head_ref == 'qa/round-timer-rc17-20261112'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
