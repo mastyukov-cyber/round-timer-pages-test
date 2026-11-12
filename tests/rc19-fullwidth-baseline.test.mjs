@@ -58,7 +58,7 @@ test('RC19 stays TEST-only with new offline cache, unchanged timer engine and We
  assert.equal(b.version,'v0.8.15-rc19');
  assert.equal(b.production,false);
  assert.equal(b.source_commit,'7e80423fdfbf3d64068c8abcee0d413956980960');
- assert.equal((html.match(/v0\\.8\\.15-rc19/g)||[]).length,2);
+ assert.equal((html.match(/v0\.8\.15-rc19/g)||[]).length,2);
  assert(sw.includes("const CACHE_NAME = 'round-timer-shell-v0.8.15-rc19'"));
  assert(app.includes("let audioMode='web'"));
  assert(app.includes("volume:kind==='button'?.72:kind==='clack'?.96:.9"));
