@@ -10,11 +10,11 @@ const settled=()=>new Promise(resolve=>setImmediate(resolve));
 
 test('preview identity and correct offline shell',()=>{
   const build=JSON.parse(content('preview-build.json'));
-  assert.equal(build.version,'v0.8.11-rc15');
+  assert.equal(build.version,'v0.8.12-rc16');
   assert.equal(build.production,false);
   assert.match(content('index.html'),/round-timer-preview-build/);
   const sw=content('sw.js');
-  assert(sw.includes('round-timer-shell-v0.8.11-rc15'));
+  assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
   for(const path of ['audio-guard.mjs','html-audio.mjs','audio-duck.mjs','app.mjs','engine.mjs','privacy.html','sounds/gong-start.mp3']){
     assert(sw.includes('./'+path),path);
   }
@@ -148,7 +148,7 @@ test('RC7 holds HTML mix through entire round, not per-signal',()=>{
  assert(!app.includes('sessionMix.cue('));
  assert(duck.includes('begin,cue,stop'));
  assert(app.includes('sessionMix.stop()'));
- assert.equal(JSON.parse(content('preview-build.json')).version,'v0.8.11-rc15');
+ assert.equal(JSON.parse(content('preview-build.json')).version,'v0.8.12-rc16');
 });
 
 test('RC8 preview first-clack latency is local and HTML-only',()=>{
@@ -157,7 +157,7 @@ test('RC8 preview first-clack latency is local and HTML-only',()=>{
  assert(app.includes('cueLatencyLabel.hidden=audioMode'));
  assert(html.includes('element.load?.()'));
  assert(!app.includes('ВКЛ · цель ≈50%'));
- assert(content('sw.js').includes('round-timer-shell-v0.8.11-rc15'));
+ assert(content('sw.js').includes('round-timer-shell-v0.8.12-rc16'));
 });
 
 test('RC9 source enables the audio selector during a test session and pauses on change',()=>{
@@ -166,7 +166,7 @@ test('RC9 source enables the audio selector during a test session and pauses on 
  assert(app.includes('if(audioModeSelect)audioModeSelect.disabled=false'));
  assert(app.includes('if(locked&&el.settings.open&&!isPreview)'));
  assert(app.includes('Смена звука автоматически ставит таймер на паузу'));
- assert(content('sw.js').includes('round-timer-shell-v0.8.11-rc15'));
+ assert(content('sw.js').includes('round-timer-shell-v0.8.12-rc16'));
 });
 
 test('RC10 prevents stale WebAudio context from resuming old gong after iOS Home',()=>{
@@ -179,5 +179,5 @@ test('RC10 prevents stale WebAudio context from resuming old gong after iOS Home
  assert(app.includes('draw({notify:false}); // Never replay any skipped background gong/clacks.'));
  assert(helper.includes('old.close?.()'));
  assert(worker.includes('./web-audio-retire.mjs'));
- assert(worker.includes('round-timer-shell-v0.8.11-rc15'));
+ assert(worker.includes('round-timer-shell-v0.8.12-rc16'));
 });
