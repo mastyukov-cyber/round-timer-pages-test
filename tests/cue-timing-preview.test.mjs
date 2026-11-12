@@ -15,5 +15,5 @@ test('RC8 preserves working HTML mixing, pause and original clack asset',()=>{
  assert(app.includes('sessionMix.begin()'));
  assert(app.includes('sessionMix.stop()'));
  assert(sw.includes('./sounds/woodclack.mp3'));
- assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
+ assert(sw.includes('round-timer-shell-v0.8.13-rc17'));
 });
