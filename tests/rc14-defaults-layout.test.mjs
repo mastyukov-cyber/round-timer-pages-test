@@ -41,7 +41,7 @@ test('RC14 preserves independently approved studio audio, work/rest colors and m
  assert(app.includes('preserveMix:keepForegroundMix()'));
  assert(css.includes('body.phase-work { --accent:#a7ff55'));
  assert(css.includes('body.phase-rest { --accent:#ff4255'));
- assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
+ assert(sw.includes('round-timer-shell-v0.8.13-rc17'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
    assert(sw.includes("'./sounds/"+name+".mp3'"));
  }
