@@ -25,7 +25,7 @@ test('RC18 exactly 140ms between two 10-second clacks on both engines',()=>{
 test('RC18 round word aligns with lower edge of 1/3, slash remains centered',()=>{
  const css=src('styles.css'),html=src('index.html');
  assert(css.includes('.round-line {display:flex;justify-content:center;align-items:flex-end;'));
- assert(css.includes('.round-word {font-size:1em;line-height:1;white-space:nowrap;padding-bottom:.055em;}'));
+ assert(css.includes('.round-word {font-size:1em;line-height:1;white-space:nowrap;padding-bottom:0;transform:translateY(-.44em);'));
  assert(css.includes('.round-count {font-size:4.5em;'));
  assert(css.includes('.round-slash {display:block;flex:none;'));
  assert(html.includes('id="roundCurrent">1'));
@@ -35,7 +35,7 @@ test('RC18 round word aligns with lower edge of 1/3, slash remains centered',()=
 test('RC18 landscape reserves more height for countdown without overflow',()=>{
  const css=src('styles.css'),app=src('app.mjs');
  assert(app.includes('window.innerHeight*.037'),'landscape round header becomes compact');
- assert(app.includes('portrait?1.045:.985'),'landscape width uses safe <100% fill');
+ assert(app.includes('isPreview?.965:.98'),'both orientations use safe <100% width fill');
  assert(app.includes('portrait?1.01:.985'),'landscape height uses safe <100% fill');
  assert(css.includes('.scoreboard {gap:0;}'));
  assert(css.includes('.clock-frame {flex:1 1 auto;min-height:0;}'));
@@ -57,7 +57,7 @@ test('RC18 portrait visual timer, WebAudio and buttons remain as in RC17',()=>{
  assert(app.includes('isPreview?1.51:1.2'));
  assert(app.includes('isPreview?4.05:4.3164'));
  assert(app.includes('isPreview?2.23:1.587'));
- assert(app.includes('portrait?1.045:.985'));
+ assert(app.includes('isPreview?.965:.98'));
  assert(app.includes('portrait?1.01:.985'));
  assert(app.includes("let audioMode='web'"));
  assert(app.includes("volume:kind==='button'?.72:kind==='clack'?.96:.9"));
