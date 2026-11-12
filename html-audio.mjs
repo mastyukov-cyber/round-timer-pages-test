@@ -19,7 +19,8 @@ export function createHtmlAudioController({
     clack1:makeAudio(paths.clack),
     clack2:makeAudio(paths.clack),
     double:paths.double?makeAudio(paths.double):null,
-    button:paths.button?makeAudio(paths.button):null
+    button:paths.button?makeAudio(paths.button):null,
+    buttonAlt:paths.button?makeAudio(paths.button):null
   };
   for(const element of Object.values(elements).filter(Boolean)){
     element.preload='auto';
@@ -28,26 +29,26 @@ export function createHtmlAudioController({
     // starting playback or taking exclusive audio focus.
     try{element.load?.();}catch(_){}
   }
-  let generation=0, pending=null;
+  let generation=0, pending=null, buttonTurn=0;
   function silence(element){
     // Mute before pause, so an iOS playback callback cannot make a
     // trailing fragment audible on return from the Home Screen.
     try{element.muted=true;}catch(_){}
-    try{element.pause();}catch(_){}
-    try{element.currentTime=0;}catch(_){}
+    try{if(!element.paused)element.pause();}catch(_){}
+    try{if(element.currentTime>0.015)element.currentTime=0;}catch(_){}
   }
   function stopAll({includeButton=true}={}){
     generation++;
     if(pending!==null){try{unschedule(pending);}catch(_){}pending=null;}
     for(const [name,element] of Object.entries(elements)){
-      if(element&&(includeButton||name!=='button'))silence(element);
+      if(element&&(includeButton||!name.startsWith('button')))silence(element);
     }
   }
   function playElement(element,token,kind){
     if(token!==generation||!isActive())return;
     const requestedAt=now();
     try{
-      element.currentTime=0;
+      if(element.currentTime>0.015)element.currentTime=0;
       element.muted=false;
       const attempt=element.play();
       void Promise.resolve(attempt).then(()=>{
@@ -65,7 +66,11 @@ export function createHtmlAudioController({
     const token=generation;
     if(type==='start')playElement(elements.start,token,'gong-start');
     else if(type==='end'||type==='done')playElement(elements.end,token,'gong-end');
-    else if(type==='ten-double'&&elements.double)playElement(elements.double,token,'ten-double');
+    else if(type==='ten-double'&&elements.clack2){
+      // Use two approved single-hit samples with a shorter, deterministic gap.
+      playElement(elements.clack1,token,'clack1');
+      pending=schedule(()=>{pending=null;playElement(elements.clack2,token,'clack2');},115);
+    }
     else if(type==='slow-double'||type==='double'){
       playElement(elements.clack1,token,'clack1');
       pending=schedule(()=>{
@@ -78,10 +83,13 @@ export function createHtmlAudioController({
   function playButton(){
     if(!elements.button||!isActive())return false;
     try{
-      if(elements.button.paused===false)elements.button.pause();
-      if(elements.button.currentTime>0.005)elements.button.currentTime=0;
-      elements.button.muted=false;
-      void Promise.resolve(elements.button.play()).catch(()=>onError('BUTTON_REJECTED'));
+      // Alternate two preloaded players: repeated taps need no forced seek.
+      const pool=[elements.button,elements.buttonAlt].filter(Boolean);
+      const element=pool[buttonTurn++%pool.length];
+      if(!element.paused)element.pause();
+      if(element.currentTime>0.015)element.currentTime=0;
+      element.muted=false;
+      void Promise.resolve(element.play()).catch(()=>onError('BUTTON_REJECTED'));
       return true;
     }catch(_){onError('BUTTON_REJECTED');return false;}
   }
