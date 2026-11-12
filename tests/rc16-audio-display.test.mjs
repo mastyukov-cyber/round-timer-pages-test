@@ -51,7 +51,7 @@ test('RC16 gongs and clacks keep original unshaped WebAudio timing and gain',()=
  assert(near(sources[1].starts[0],7.123));
  const app=source('app.mjs');
  assert(app.includes("volume:kind==='button'?.72:kind==='clack'?.96:.9"));
- assert(app.includes("type==='ten-double'?[0,.130]"));
+ assert(app.includes("type==='ten-double'?[0,.135]"));
 });
 test('RC16 counter is 1.5× RC15 and moved down in both orientations',()=>{
  const app=source('app.mjs'),css=source('styles.css'),index=source('index.html');
@@ -59,7 +59,7 @@ test('RC16 counter is 1.5× RC15 and moved down in both orientations',()=>{
  assert(app.includes('if(total>max)base*=max/total'));
  assert(css.includes('.round-count {font-size:4.5em'));
  assert(css.includes('translateY(clamp(20px,3.2vh,34px))'));
- assert(css.includes('translateY(clamp(11px,2.6vh,22px))'));
+ assert(css.includes('translateY(clamp(1px,.7vh,4px))'));
  assert(index.includes('id="roundCount" role="text"'));
 });
 test('RC16 larger countdown is responsive and original timer model unchanged',()=>{
@@ -67,17 +67,17 @@ test('RC16 larger countdown is responsive and original timer model unchanged',()
  assert(app.includes('isPreview?1.38:1.2'));
  assert(app.includes('isPreview?4.05:4.3164'));
  assert(app.includes('isPreview?1.79:1.587'));
- assert(app.includes('isPreview?1.045:.98'));
- assert(app.includes('isPreview?1.01:.95'));
+ assert(app.includes('isPreview?(portrait?1.045:.985):.98'));
+ assert(app.includes('isPreview?(portrait?1.01:.985):.95'));
  assert(css.includes('transform:scale(1.38,4.05)'));
  assert(css.includes('transform:scale(1.79,1.79)'));
  assert(app.includes('Math.min(byWidth,byHeight,620)'));
 });
 test('RC16 TEST identity is consistent and never production',()=>{
  const build=JSON.parse(source('preview-build.json')),html=source('index.html'),sw=source('sw.js');
- assert.equal(build.version,'v0.8.13-rc17');
+ assert.equal(build.version,'v0.8.14-rc18');
  assert.equal(build.production,false);
- assert.equal(build.source_commit,'649144d04336ff0be54cde180e1c90dee2801b9b');
- assert(html.includes('ТЕСТОВАЯ ВЕРСИЯ · v0.8.13-rc17'));
- assert(sw.includes('round-timer-shell-v0.8.13-rc17'));
+ assert.equal(build.source_commit,'12aeecc200124e3a67d76a85ea9545850c94c9e0');
+ assert(html.includes('ТЕСТОВАЯ ВЕРСИЯ · v0.8.14-rc18'));
+ assert(sw.includes('round-timer-shell-v0.8.14-rc18'));
 });

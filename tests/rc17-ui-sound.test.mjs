@@ -15,9 +15,9 @@ test('RC17 Web Audio selected permanently, no audio or latency fields in setting
  assert(app.includes('function buttonSound()'));
  assert(app.includes("volume:kind==='button'?.72:kind==='clack'?.96:.9"));
 });
-test('RC17 ten-second WebAudio and HTML Audio have identical 130ms interval',()=>{
+test('RC17 ten-second WebAudio and HTML Audio have identical 135ms interval',()=>{
  const app=src('app.mjs'),timers=[],sound=[];
- assert(app.includes("type==='ten-double'?[0,.130]"));
+ assert(app.includes("type==='ten-double'?[0,.135]"));
  const controller=createHtmlAudioController({
   makeAudio:name=>{const a={name,paused:true,currentTime:0,play(){sound.push(name);this.paused=false;return Promise.resolve();},pause(){this.paused=true;},load(){}};return a;},
   paths:{start:'start',end:'end',clack:'single',double:'double',button:'button'},
@@ -27,7 +27,7 @@ test('RC17 ten-second WebAudio and HTML Audio have identical 130ms interval',()=
  controller.play('ten-double');
  assert.deepEqual(sound,['single']);
  assert.equal(timers.length,1);
- assert.equal(timers[0].ms,130);
+ assert.equal(timers[0].ms,135);
  timers[0].fn();
  assert.deepEqual(sound,['single','single']);
 });
@@ -58,8 +58,8 @@ test('RC17 iOS resuming and full-height layout keeps settings button reachable',
 test('RC17 unique visible version and fresh offline cache; source TEST only',()=>{
  const html=src('index.html'),worker=src('sw.js'),meta=JSON.parse(src('preview-build.json'));
  assert.equal(meta.production,false);
- assert.equal(meta.version,'v0.8.13-rc17');
- assert.equal(meta.source_commit,'649144d04336ff0be54cde180e1c90dee2801b9b');
- assert.equal((html.match(/v0.8.13-rc17/g)||[]).length,2);
- assert(worker.includes("const CACHE_NAME = 'round-timer-shell-v0.8.13-rc17'"));
+ assert.equal(meta.version,'v0.8.14-rc18');
+ assert.equal(meta.source_commit,'12aeecc200124e3a67d76a85ea9545850c94c9e0');
+ assert.equal((html.match(/v0.8.14-rc18/g)||[]).length,2);
+ assert(worker.includes("const CACHE_NAME = 'round-timer-shell-v0.8.14-rc18'"));
 });

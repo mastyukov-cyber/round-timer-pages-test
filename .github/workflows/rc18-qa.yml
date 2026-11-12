@@ -1,0 +1,45 @@
+name: APP-001 RC18 — final 135ms, bottom round align, full landscape timer QA (TEST)
+on:
+  push:
+    branches: [qa/round-timer-rc18-20261112]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.mjs'
+      - 'html-audio.mjs'
+      - 'styles.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'preview-build.json'
+      - 'tests/**'
+      - '.github/workflows/rc18-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify JS syntax, TEST identity
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs audio-guard.mjs html-audio.mjs audio-duck.mjs sw.js; do node --check "$f"; done
+          node -e "const b=require('./preview-build.json');if(b.version!=='v0.8.14-rc18'||b.production!==false)process.exit(1)"
+      - name: Full synthetic regression and simulated UI layout
+        run: node --test tests/*.test.mjs
+      - name: Approved original MP3 SHA256/size check
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const m=JSON.parse(readFileSync('studio-audio-manifest.json'));
+          if(m.files.length!==5)throw Error('Expected exactly five original MP3s');
+          for(const f of m.files){
+            const bytes=readFileSync('sounds/'+f.name);
+            if(bytes.length!==f.bytes||createHash('sha256').update(bytes).digest('hex')!==f.sha256)throw Error('Studio MP3 differs: '+f.name);
+          }
+          console.log('PASS: approved studio MP3 5/5');
+          JS

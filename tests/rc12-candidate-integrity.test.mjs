@@ -6,7 +6,7 @@ const raw=(name)=>readFileSync(new URL('../'+name,import.meta.url));
 const txt=(name)=>raw(name).toString('utf8');
 test('RC12 candidate is TEST-only from audited PR19 and visible to iPhone',()=>{
  const m=JSON.parse(txt('preview-build.json'));
- assert.equal(m.version,'v0.8.13-rc17');
+ assert.equal(m.version,'v0.8.14-rc18');
  assert.equal(m.production,false);
  assert.equal(m.source_pr,null,'RC15 is authored only in isolated TEST repository');
  assert.equal(m.base_source_pr,21);
