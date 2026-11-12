@@ -17,6 +17,8 @@ permissions:
   contents: read
 jobs:
   test:
+    # RC16 version-specific regression must not block future RC17 PRs.
+    if: github.event_name == 'push' || github.head_ref == 'qa/round-timer-rc16-20261112'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
