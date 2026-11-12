@@ -3,7 +3,7 @@ import {createDelayedStartGuard,createActiveSoundController,createAudioInterrupt
 import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
-const DIAGNOSTICS_VERSION='0.8.11';
+const DIAGNOSTICS_VERSION='0.8.12';
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
@@ -163,7 +163,7 @@ function sound(type){
  }
  const offsets=isPreview&&type==='ten-double'?[0,.115]:type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
  for(const offset of offsets){
-   try {activeSounds.play({context:audioContext,buffer:sample,offset,volume:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});}
+   try {activeSounds.play({context:audioContext,buffer:sample,offset,volume:kind==='button'?.72:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});}
    catch(_){void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});}
  }
 }
@@ -287,9 +287,9 @@ function fitClock(force=false){
  const st=getComputedStyle(el.clock);
  ctx.font=`900 100px ${st.fontFamily}`;
  const raw=ctx.measureText('88:88').width-100*.055*4;
- const scaleX=portrait?(isPreview?1.34:1.2):(isPreview?1.73:1.587),scaleY=portrait?(isPreview?3.94:4.3164):(isPreview?1.73:1.587);
- const byWidth=(frame.clientWidth*(isPreview?1.025:.98))/(raw/100)/scaleX;
- const byHeight=(frame.clientHeight*(isPreview?.985:.95))/scaleY;
+ const scaleX=portrait?(isPreview?1.38:1.2):(isPreview?1.79:1.587),scaleY=portrait?(isPreview?4.05:4.3164):(isPreview?1.79:1.587);
+ const byWidth=(frame.clientWidth*(isPreview?1.045:.98))/(raw/100)/scaleX;
+ const byHeight=(frame.clientHeight*(isPreview?1.01:.95))/scaleY;
  const size=Math.max(15,Math.min(byWidth,byHeight,620));
  el.clock.style.fontSize=`${size}px`;
  fitLabels();
@@ -303,7 +303,7 @@ function fitLabels(){
   base=Math.max(12,Math.min(base,32));
   ctx.font=`900 ${base}px ${st.fontFamily}`;
   const wordWidth=ctx.measureText('РАУНД').width;
-  ctx.font=`900 ${base*3}px ${st.fontFamily}`;
+  ctx.font=`900 ${base*4.5}px ${st.fontFamily}`;
   const numberWidth=ctx.measureText(el.roundCount.textContent||'12/12').width;
   const total=wordWidth+numberWidth+base*.32;
   const max=(el.round.parentElement.clientWidth||window.innerWidth)*.94;
