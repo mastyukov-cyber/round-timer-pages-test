@@ -22,7 +22,7 @@ test('RC14 portrait and landscape digits grow slightly without removing responsi
  assert(app.includes('isPreview?1.38:1.2'));
  assert(app.includes('isPreview?4.05:4.3164'));
  assert(app.includes('isPreview?1.79:1.587'));
- assert(app.includes('isPreview?1.045:.98'));
+ assert(app.includes('isPreview?(portrait?1.045:.985):.98'));
  assert(app.includes('isPreview?1.01:.95'));
  assert(app.includes('Math.min(byWidth,byHeight,620)'));
  assert(css.includes('transform:scale(1.38,4.05)'));
@@ -41,7 +41,7 @@ test('RC14 preserves independently approved studio audio, work/rest colors and m
  assert(app.includes('preserveMix:keepForegroundMix()'));
  assert(css.includes('body.phase-work { --accent:#a7ff55'));
  assert(css.includes('body.phase-rest { --accent:#ff4255'));
- assert(sw.includes('round-timer-shell-v0.8.13-rc17'));
+ assert(sw.includes('round-timer-shell-v0.8.14-rc18'));
  for(const name of ['studio-gong-start','studio-gong-end','woodclack-single','woodclack-double','button']){
    assert(sw.includes("'./sounds/"+name+".mp3'"));
  }
