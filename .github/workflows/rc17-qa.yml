@@ -1,0 +1,45 @@
+name: APP-001 RC17 — WebAudio locked, round slash, iOS reopen QA (TEST only)
+on:
+  push:
+    branches: [qa/round-timer-rc17-20261112]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app.mjs'
+      - 'html-audio.mjs'
+      - 'index.html'
+      - 'styles.css'
+      - 'sw.js'
+      - 'preview-build.json'
+      - 'tests/**'
+      - '.github/workflows/rc17-qa.yml'
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify source scripts and TEST identity
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs audio-guard.mjs html-audio.mjs audio-duck.mjs sw.js; do node --check "$f"; done
+          node -e "const b=require('./preview-build.json');if(b.version!=='v0.8.13-rc17'||b.production!==false)process.exit(1)"
+      - name: All synthetic unit and browser models
+        run: node --test tests/*.test.mjs
+      - name: Check approved recorded sound assets byte-for-byte
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const m=JSON.parse(readFileSync('studio-audio-manifest.json'));
+          if(m.files.length!==5)throw Error('5 original MP3 files required');
+          for(const f of m.files){
+            const data=readFileSync('sounds/'+f.name);
+            if(data.length!==f.bytes||createHash('sha256').update(data).digest('hex')!==f.sha256)throw Error('MP3 differs: '+f.name);
+          }
+          console.log('PASS original MP3 5/5');
+          JS

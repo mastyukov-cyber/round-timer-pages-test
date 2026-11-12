@@ -1,17 +1,19 @@
-# APP-001 — ROUND TIMER | RC16 TEST
+# APP-001 Round Timer — RC17 TEST
 
-**Build:** `v0.8.12-rc16` · 12 November 2026 · not production.
+**Version:** `v0.8.13-rc17` — 12 November 2026. **Not a production release.**
 
-Base: TEST RC15 commit `244435d682161386bd3a064fc1dc8a683a0a77ef`.
+Base TEST RC16: `649144d04336ff0be54cde180e1c90dee2801b9b`.
 
-User's physical iPhone feedback: Web Audio gong and clack sound timing is excellent. Music from another iPhone music app may make the button tap sample slightly harsh.
+Physical iPhone feedback: Web Audio cue timing is excellent; keep all RC16 typography, sound gains and original five MP3 intact.
 
-RC16: **keep Web Audio cue timing unchanged**. Change Web Audio button only: reduce volume from 0.90 to 0.72, soften attack over 4 ms and release over the last 12 ms. Do not edit any MP3. Enlarge countdown digits slightly in portrait and landscape with responsive sizing; move round heading down; enlarge only `1/3` from 3× to 4.5× the word “РАУНД”, retaining width fitting for long round counts.
+RC17 changes:
+- Retire audio/mixing/latency controls from user settings and force Web Audio in TEST, ignoring old HTML Audio selections.
+- Ten-second double single-hit separation set to **130ms** in both Web Audio and dormant HTML fallback (between 115ms RC16 and 145ms older).
+- Replace the font '/' that hangs below digits with a centered CSS diagonal stroke between separate numeric spans; preserve width clamping and accessible round label.
+- Restore small-viewport height and redo clock fit when returning from the iPhone Home screen or reopening the PWA. Keep all main controls inside display bounds.
 
-No changes to production `mastyukov/round-timer`; no music ducking request. TEST deployment only after isolated CI passes.
+All QA uses synthetic tests and exact hash verification. Physical iPhone validation still required for reopening several times and footer visibility.
 
-TEST: https://mastyukov-cyber.github.io/round-timer-pages-test/
+Test URL: https://mastyukov-cyber.github.io/round-timer-pages-test/
 
-Rollback SHA for TEST: `244435d682161386bd3a064fc1dc8a683a0a77ef`.
-
-Physical iPhone QA still required: button sound with background music, portrait and landscape readability, clipping and settings modal.
+Rollback TEST to RC16: `649144d04336ff0be54cde180e1c90dee2801b9b`. Never touch production `mastyukov/round-timer`.

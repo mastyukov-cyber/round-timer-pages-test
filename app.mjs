@@ -3,7 +3,7 @@ import {createDelayedStartGuard,createActiveSoundController,createAudioInterrupt
 import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
-const DIAGNOSTICS_VERSION='0.8.12';
+const DIAGNOSTICS_VERSION='0.8.13';
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
@@ -18,15 +18,17 @@ const PREVIEW_MUSIC_KEY='round-timer-preview-music-mix-v1';
 // RC13: restore exact countdown boundaries; no speculative 700ms lead.
 const isPreview=globalThis.location?.origin==='https://mastyukov-cyber.github.io' &&
   globalThis.location?.pathname?.startsWith('/round-timer-pages-test/');
+// RC17: user-facing audio experiments retired. Dormant QA switches are disabled.
+const AUDIO_QA_CONTROLS=false;
 let audioMode='web';
 let musicMixEnabled=isPreview;
-if(isPreview){
+if(AUDIO_QA_CONTROLS && isPreview){
   try{audioMode=localStorage.getItem(PREVIEW_AUDIO_KEY)==='web'?'web':'html';}catch(_){audioMode='html';}
   try{musicMixEnabled=localStorage.getItem(PREVIEW_MUSIC_KEY)!=='off';}catch(_){musicMixEnabled=true;}
 }
 
 const byId=id=>document.getElementById(id);
-const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),form:byId('settingsForm')};
+const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),roundCurrent:byId('roundCurrent'),roundTotal:byId('roundTotal'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),form:byId('settingsForm')};
 function durationLabel(sec) {
   if(sec===0) return '0 секунд';
   const min=Math.floor(sec/60), remainder=sec%60;
@@ -90,7 +92,7 @@ let webWasInterrupted=false;
 // Test-only measurement of the first clack's browser playback-start latency.
 // No telemetry is sent, and the approved audio files are not changed.
 let firstClackMeasured=false;
-const cueLatencyLabel=isPreview?document.createElement('small'):null;
+const cueLatencyLabel=isPreview&&AUDIO_QA_CONTROLS?document.createElement('small'):null;
 if(cueLatencyLabel){
   cueLatencyLabel.textContent='Первый щелчок: задержка ещё не измерена';
   cueLatencyLabel.style.cssText='grid-column:1/-1;font-size:.75rem;line-height:1.2;color:#c9d7e7';
@@ -161,7 +163,7 @@ function sound(type){
    });
    return;
  }
- const offsets=isPreview&&type==='ten-double'?[0,.115]:type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
+ const offsets=isPreview&&type==='ten-double'?[0,.130]:type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
  for(const offset of offsets){
    try {activeSounds.play({context:audioContext,buffer:sample,offset,volume:kind==='button'?.72:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});}
    catch(_){void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});}
@@ -214,7 +216,7 @@ function pausePreviewForAudioChange(){
 }
 let audioModeSelect=null;
 let musicMixLabel=null;
-if(isPreview && htmlSounds){
+if(isPreview && AUDIO_QA_CONTROLS && htmlSounds){
  const label=document.createElement('label');
  label.textContent='ЗВУК ТАЙМЕРА · ТЕСТ';
  label.style.gridColumn='1/-1';
@@ -238,7 +240,7 @@ if(isPreview && htmlSounds){
  audioModeSelect=select;
 }
 let musicMixSelect=null;
-if(isPreview){
+if(isPreview && AUDIO_QA_CONTROLS){
   const label=document.createElement('label');
   label.textContent='МУЗЫКА ПРИ СИГНАЛАХ · RC7';
   label.style.gridColumn='1/-1';
@@ -266,7 +268,7 @@ if(isPreview){
   });
   musicMixLabel=label;musicMixSelect=select;
 }
-if(isPreview){
+if(isPreview && AUDIO_QA_CONTROLS){
   const tip=document.createElement('small');
   tip.textContent='Смена звука автоматически ставит таймер на паузу';
   tip.style.cssText='grid-column:1/-1;font-size:.72rem;color:#c9d7e7;line-height:1.2';
@@ -280,7 +282,7 @@ function fitClock(force=false){
  const frame=el.clock.parentElement;
  if(!frame||!frame.clientWidth||!frame.clientHeight)return;
  const portrait=window.matchMedia('(orientation: portrait)').matches;
- const key=[frame.clientWidth,frame.clientHeight,window.innerWidth,window.innerHeight,portrait].join(':');
+ const key=[frame.clientWidth,frame.clientHeight,window.innerWidth,window.innerHeight,window.visualViewport?.height||0,portrait].join(':');
  if(!force && key===lastClockLayout)return;
  lastClockLayout=key;
  const ctx=(fitClock.canvas||(fitClock.canvas=document.createElement('canvas'))).getContext('2d');
@@ -304,7 +306,8 @@ function fitLabels(){
   ctx.font=`900 ${base}px ${st.fontFamily}`;
   const wordWidth=ctx.measureText('РАУНД').width;
   ctx.font=`900 ${base*4.5}px ${st.fontFamily}`;
-  const numberWidth=ctx.measureText(el.roundCount.textContent||'12/12').width;
+  const fraction=el.roundCurrent&&el.roundTotal?`${el.roundCurrent.textContent}/${el.roundTotal.textContent}`:el.roundCount.textContent||'12/12';
+   const numberWidth=ctx.measureText(fraction).width;
   const total=wordWidth+numberWidth+base*.32;
   const max=(el.round.parentElement.clientWidth||window.innerWidth)*.94;
   if(total>max)base*=max/total;
@@ -324,6 +327,9 @@ function fitLabels(){
 }
 window.addEventListener('resize',()=>{lastClockLayout='';fitClock(true);});
 window.addEventListener('orientationchange',()=>{lastClockLayout='';requestAnimationFrame(()=>fitClock(true));});
+// Re-evaluate iOS viewport on returning from Home; never change timer clock.
+window.visualViewport?.addEventListener?.('resize',()=>{lastClockLayout='';requestAnimationFrame(()=>fitClock(true));});
+window.addEventListener('focus',()=>{lastClockLayout='';requestAnimationFrame(()=>fitClock(true));});
 if('ResizeObserver' in window)new ResizeObserver(()=>fitClock()).observe(el.clock.parentElement);
 function draw({notify=true}={}) {
   const phase=session?phaseNow():computePhase({...config,prepare:0},0);
@@ -334,7 +340,11 @@ function draw({notify=true}={}) {
     ?computePhase(config,elapsedNow()+250):phase;
   document.body.className=`phase-${type}${el.settings.open?' settings-visible':''}`;
   const roundNumbers=`${phase.round}/${phase.rounds==='infinity'?'∞':phase.rounds}`;
-  if(el.roundCount)el.roundCount.textContent=roundNumbers;
+  if(el.roundCurrent && el.roundTotal){
+    el.roundCurrent.textContent=String(phase.round);
+    el.roundTotal.textContent=phase.rounds==='infinity'?'∞':String(phase.rounds);
+    el.roundCount?.setAttribute?.('aria-label',`Раунд ${roundNumbers}`);
+  }else if(el.roundCount)el.roundCount.textContent=roundNumbers;
   else el.round.textContent=`РАУНД ${roundNumbers}`;
   el.clock.textContent=formatTime(phase.remainingMs);
   fitClock();
@@ -445,14 +455,18 @@ document.addEventListener('visibilitychange',()=>{
   if(document.hidden){wasHidden=true;lastPhase=null;save();}
   else{
     endWebBackgroundReturn();
+    lastClockLayout='';
     draw({notify:false});
+    requestAnimationFrame(()=>fitClock(true));
     ensureScreenOn();
     wasHidden=false;
   }
 });
 window.addEventListener('pageshow',()=>{
   endWebBackgroundReturn();
+  lastClockLayout='';
   draw({notify:false}); // Never replay any skipped background gong/clacks.
+  requestAnimationFrame(()=>fitClock(true));
 });
 window.addEventListener('pagehide',save);
 updateInputs(config);restore();draw({notify:false});

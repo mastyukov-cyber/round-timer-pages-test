@@ -51,7 +51,7 @@ test('RC16 gongs and clacks keep original unshaped WebAudio timing and gain',()=
  assert(near(sources[1].starts[0],7.123));
  const app=source('app.mjs');
  assert(app.includes("volume:kind==='button'?.72:kind==='clack'?.96:.9"));
- assert(app.includes("type==='ten-double'?[0,.115]"));
+ assert(app.includes("type==='ten-double'?[0,.130]"));
 });
 test('RC16 counter is 1.5× RC15 and moved down in both orientations',()=>{
  const app=source('app.mjs'),css=source('styles.css'),index=source('index.html');
@@ -60,7 +60,7 @@ test('RC16 counter is 1.5× RC15 and moved down in both orientations',()=>{
  assert(css.includes('.round-count {font-size:4.5em'));
  assert(css.includes('translateY(clamp(20px,3.2vh,34px))'));
  assert(css.includes('translateY(clamp(11px,2.6vh,22px))'));
- assert(index.includes('id="roundCount">1/3'));
+ assert(index.includes('id="roundCount" role="text"'));
 });
 test('RC16 larger countdown is responsive and original timer model unchanged',()=>{
  const app=source('app.mjs'),css=source('styles.css');
@@ -75,9 +75,9 @@ test('RC16 larger countdown is responsive and original timer model unchanged',()
 });
 test('RC16 TEST identity is consistent and never production',()=>{
  const build=JSON.parse(source('preview-build.json')),html=source('index.html'),sw=source('sw.js');
- assert.equal(build.version,'v0.8.12-rc16');
+ assert.equal(build.version,'v0.8.13-rc17');
  assert.equal(build.production,false);
- assert.equal(build.source_commit,'244435d682161386bd3a064fc1dc8a683a0a77ef');
- assert(html.includes('ТЕСТОВАЯ ВЕРСИЯ · v0.8.12-rc16'));
- assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
+ assert.equal(build.source_commit,'649144d04336ff0be54cde180e1c90dee2801b9b');
+ assert(html.includes('ТЕСТОВАЯ ВЕРСИЯ · v0.8.13-rc17'));
+ assert(sw.includes('round-timer-shell-v0.8.13-rc17'));
 });

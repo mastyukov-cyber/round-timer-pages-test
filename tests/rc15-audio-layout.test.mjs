@@ -30,7 +30,7 @@ test('RC15 HTML clack starts without needless seeking on a silent media element'
  assert.equal(clack.plays,1);
  assert.equal(clack.seeks,0,'do not seek 0->0 before starting audio on iPhone');
 });
-test('RC15 ten-second double consists of two approved single hits 115ms apart',()=>{
+test('RC15 ten-second double consists of two approved single hits 130ms apart',()=>{
  const {controller,files,delays}=mock();
  controller.play('ten-double');
  const singles=files.filter(x=>x.path==='single');
@@ -38,11 +38,11 @@ test('RC15 ten-second double consists of two approved single hits 115ms apart',(
  assert.equal(singles[0].plays,1);
  assert.equal(singles[1].plays,0);
  assert.equal(delays.length,1);
- assert.equal(delays[0].ms,115);
+ assert.equal(delays[0].ms,130);
  delays[0].fn();
  assert.equal(singles[1].plays,1);
  const app=source('app.mjs');
- assert(app.includes("type==='ten-double'?[0,.115]"),'WebAudio double must use same 115ms interval');
+ assert(app.includes("type==='ten-double'?[0,.130]"),'WebAudio double must use same 115ms interval');
 });
 test('RC15 repeated buttons alternate two ready players instead of interrupting the first',()=>{
  const {controller,files}=mock();
@@ -62,14 +62,14 @@ test('RC15 visual timer is unshifted while HTML cue requests advance by 250ms',(
 });
 test('RC16 shows 4.5x number, moves round closer, slightly wider but less tall portrait timer',()=>{
  const html=source('index.html'),css=source('styles.css'),app=source('app.mjs'),sw=source('sw.js');
- assert(html.includes('id="roundCount">1/3'));
+ assert(html.includes('id="roundCount" role="text"'));
  assert(css.includes('.round-count {font-size:4.5em'));
  assert(css.includes('transform:translateY(clamp(10px,2vh,20px))'));
  assert(css.includes('transform:scale(1.38,4.05)'));
  assert(css.includes('transform:scale(1.79,1.79)'));
  assert(app.includes('if(total>max)base*=max/total'));
- assert(sw.includes('round-timer-shell-v0.8.12-rc16'));
+ assert(sw.includes('round-timer-shell-v0.8.13-rc17'));
  const build=JSON.parse(source('preview-build.json'));
- assert.equal(build.version,'v0.8.12-rc16');
+ assert.equal(build.version,'v0.8.13-rc17');
  assert.equal(build.production,false);
 });
