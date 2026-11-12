@@ -1,14 +1,14 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.11-rc15",
+  "version": "v0.8.12-rc16",
   "production": false,
   "source_repository": "mastyukov-cyber/round-timer-pages-test",
   "source_pr": null,
-  "source_commit": "a02e2e0736133a2eef7e096999dd23f7e162dae9",
+  "source_commit": "244435d682161386bd3a064fc1dc8a683a0a77ef",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
-  "tests": "RC15 audio startup, double clack timing, round counter and offline regression",
+  "tests": "RC16 button envelope, unchanged cues, responsive round-count 4.5x, 99+ regression, exact audio assets",
   "mac_required": false,
-  "note": "RC15 TEST: keep external music; avoid unnecessary seeks, two button players, 250ms cue request lead, 115ms double hit, responsive 3x round count.",
+  "note": "RC16 TEST: Web Audio button volume 0.72 with 4ms attack and 12ms release only for buttons; unchanged gong/clack sound routing; slightly larger display and lower round label, round count 4.5x word size (1.5x RC15).",
   "base_source_repository": "mastyukov/round-timer",
   "base_source_pr": 21,
   "base_source_commit": "43fb3611e3ddf66c5f8ac59b2512eb75b3200528"
