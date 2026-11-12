@@ -1,13 +1,11 @@
-# APP-001 Round Timer — RC14 TEST
+# APP-001 Round Timer — RC15 TEST
 
-Current TEST version: `v0.8.10-mix-rc14`. This is **not** a production release.
+**Version:** `v0.8.11-rc15` · 2026-11-12 · **not production**.
 
-Source: isolated Draft PR [#21](https://github.com/mastyukov/round-timer/pull/21), SHA `43fb3611e3ddf66c5f8ac59b2512eb75b3200528`.
+Base RC14 TEST commit: `a02e2e0736133a2eef7e096999dd23f7e162dae9`; initial code originated from source Draft PR #21.
 
-Changes: HTML Audio keeps external music in transient mixing category during foreground RESET/PAUSE; Web Audio click and workout sounds are separated to avoid prematurely cutting off button sounds; Web Audio starts preparation during a user gesture; larger portrait and landscape timer digits, enlarged round label, preparation 0 seconds by default, rest 30 seconds by default. Explicit presets remain selectable. All five approved user-recorded studio MP3s are byte-identical to the previous TEST.
+Changes: preserve external music playback, without demanding ducking; avoid needless pause/seek on inactive HTML media; alternate two preloaded button samples; request countdown warning cues 250ms ahead of visual threshold only for HTML Audio (physical iPhone latency remains unverified); replace 10-second double recording playback with two user-approved single-hit samples separated by 115ms (five original MP3s unchanged). Slightly larger timer display and phase text; reduced portrait digit height; round number 3× word font; label moved closer to countdown. Responsive width clamp retained.
 
-Independent candidate CI: **94/94 PASS**. Source: **139/139 JavaScript** and **23/23 Python**; SourceCraft **30/30 JavaScript** and **21/21 Python**. On-device iPhone sound latency, Web Audio music ducking and potential visual clipping require physical validation.
+**TEST:** https://mastyukov-cyber.github.io/round-timer-pages-test/
 
-TEST site: https://mastyukov-cyber.github.io/round-timer-pages-test/
-Previous TEST rollback: `1c288fc277c74b50e3c4fc0244dba36248aebb88` (RC13).
-Production repo and main branch have not been modified.
+**Rollback:** preceding TEST main `a02e2e0736133a2eef7e096999dd23f7e162dae9` (RC14). No change to production `mastyukov/round-timer`.
