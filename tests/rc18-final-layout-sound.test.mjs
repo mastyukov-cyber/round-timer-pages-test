@@ -68,6 +68,6 @@ test('RC18 metadata, visible label and new offline cache consistent; TEST only',
  assert.equal(b.version,'v0.8.15-rc19');
  assert.equal(b.production,false);
  assert.equal(b.source_commit,'7e80423fdfbf3d64068c8abcee0d413956980960');
- assert.equal((html.match(/v0\.8\.14-rc18/g)||[]).length,2);
+ assert.equal((html.match(/v0\.8\.15-rc19/g)||[]).length,2);
  assert(sw.includes("const CACHE_NAME = 'round-timer-shell-v0.8.15-rc19'"));
 });
