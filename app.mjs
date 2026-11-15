@@ -1,23 +1,25 @@
 import {createDiagnosticSender,attachBrowserErrorCapture,productionDiagnosticEndpoint} from './diagnostics/sender.mjs';
-import {createDelayedStartGuard,createActiveSoundController,createAudioInterruptionGuard} from './audio-guard.mjs';
+import {createDelayedStartGuard,createActiveSoundController,createAudioInterruptionGuard,isCueFresh} from './audio-guard.mjs';
 import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
-const DIAGNOSTICS_VERSION='0.8.15';
+import {createAudioClockWatchdog,pulseStalledContext} from './audio-clock-watchdog.mjs';
+const DIAGNOSTICS_VERSION='0.8.19-test';
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
 attachBrowserErrorCapture({target:window,sender:diagnosticSender,version:DIAGNOSTICS_VERSION});
 // Error-only telemetry; no usage, no personal information and no UI changes.
-import {normalizeConfig,computePhase,formatTime,WORK_CHOICES,REST_CHOICES,ROUND_CHOICES,PREPARE_CHOICES,crossedCountdown} from './engine.mjs';
+import {normalizeConfig,computePhase,formatTime,WORK_CHOICES,REST_CHOICES,ROUND_CHOICES,PREPARE_CHOICES,crossedCountdown,cueForPhaseTransition} from './engine.mjs';
 const STORAGE_KEY='timer-active-session-v1';
 // RC6 preview resets earlier transport and speculative 50% options.
 // RC13 TEST: reset previously saved audio mode to reliable HTML default.
 const PREVIEW_AUDIO_KEY='round-timer-preview-transport-rc13-v1';
 const PREVIEW_MUSIC_KEY='round-timer-preview-music-mix-v1';
 // RC13: restore exact countdown boundaries; no speculative 700ms lead.
-const isPreview=globalThis.location?.origin==='https://mastyukov-cyber.github.io' &&
-  globalThis.location?.pathname?.startsWith('/round-timer-pages-test/');
+// Approved RC19 behavior is now the stable release, not a TEST-origin experiment.
+// Audio QA controls remain disabled separately via AUDIO_QA_CONTROLS=false.
+const isPreview=true;
 // RC17: user-facing audio experiments retired. Dormant QA switches are disabled.
 const AUDIO_QA_CONTROLS=false;
 let audioMode='web';
@@ -28,7 +30,7 @@ if(AUDIO_QA_CONTROLS && isPreview){
 }
 
 const byId=id=>document.getElementById(id);
-const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),roundCurrent:byId('roundCurrent'),roundTotal:byId('roundTotal'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),form:byId('settingsForm')};
+const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),roundCurrent:byId('roundCurrent'),roundTotal:byId('roundTotal'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),audioRecover:byId('audioRecoveryButton'),form:byId('settingsForm')};
 function durationLabel(sec) {
   if(sec===0) return '0 секунд';
   const min=Math.floor(sec/60), remainder=sec%60;
@@ -55,15 +57,24 @@ function restore(){try{
 }catch(_){}}
 function elapsedNow(){return session?session.elapsedBeforeMs+(session.status==='running'?Math.max(0,Date.now()-session.resumedAt):0):0;}
 function phaseNow(){return computePhase(config,elapsedNow());}
+// Return readiness: an immediate zero-preparation START can then queue its gong
+// until Safari enables Web Audio and decodes the original recording.
 function unlockAudio(){
- if(audioMode==='html')return;
+ if(audioMode==='html')return Promise.resolve(false);
  try{
+   if(audioContext?.state==='closed')webRetirement.retire();
    audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
    const context=audioContext,token=webRetirement.generation;
-   Promise.resolve(context.resume()).then(()=>{
-     if(webRetirement.isCurrent(context,token) && !document.hidden)preloadSounds();
-   }).catch(()=>{void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});});
- }catch(_){}
+   const resume=context.state==='running'?Promise.resolve():context.resume();
+   return Promise.resolve(resume).then(async()=>{
+     if(!webRetirement.isCurrent(context,token)||document.hidden||context.state!=='running')return false;
+     await preloadSounds();
+     return webRetirement.isCurrent(context,token)&&context.state==='running'&&!!soundBuffers.start;
+   }).catch(()=>{
+     void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});
+     return false;
+   });
+ }catch(_){return Promise.resolve(false);}
 }
 // Original boxing-style sounds, not extracted from any third-party app.
 // Audio is unlocked on a direct button press; silence in the background is expected on iOS.
@@ -125,7 +136,7 @@ const delayedStartGong=createDelayedStartGuard({
   canPlay: context=>!!context.sessionRef && session===context.sessionRef &&
     session.status==='running' && !document.hidden && !audioInterruption.interrupted &&
     audioContext?.state==='running' && !!soundBuffers.start &&
-    phaseNow().key===context.phaseKey,
+    phaseNow().key===context.phaseKey && elapsedNow()<=3000,
   play: ()=>sound('start'),
 });
 function preloadSounds(){
@@ -163,9 +174,9 @@ function sound(type){
    });
    return;
  }
- const offsets=isPreview&&type==='ten-double'?[0,.140]:type==='slow-double'?[0,.25]:type==='double'?[0,.145]:[0];
+ const offsets=isPreview&&type==='ten-double'?[0,.155]:type==='slow-double'?[0,.25]:type==='double'?[0,.155]:[0];
  for(const offset of offsets){
-   try {activeSounds.play({context:audioContext,buffer:sample,offset,volume:kind==='button'?.72:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});}
+   try {activeSounds.play({context:audioContext,buffer:sample,offset,volume:kind==='button'?.1944:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});}
    catch(_){void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});}
  }
 }
@@ -180,27 +191,86 @@ function stopActiveAudio({fadeMs=16,preserveButton=false,preserveMix=false}={}){
  htmlSounds?.stopAll({includeButton:!preserveButton});
  if(!preserveMix)sessionMix.stop();
 }
+let audioRecoveryEpoch=0;
+let audioClockNeedsGesture=false;
+function showAudioRecovery(show){if(el.audioRecover)el.audioRecover.hidden=!show;}
 const audioInterruption=createAudioInterruptionGuard({
  windowTarget:window,documentTarget:document,
  stop:reason=>{
-   const retire=isPreview&&audioMode==='web';
-   // Immediate mute first: short fades can be delayed by iOS suspension.
-   stopActiveAudio({fadeMs:retire?0:reason==='blur'?12:0});
-   if(retire){
-     webWasInterrupted=true;
-     webRetirement.retire(); // Destroy stale context, never resume old gong.
-   }
+   const web=isPreview&&audioMode==='web';
+   // Stop queued sounds, but retain the unlocked context and decoded buffers.
+   // Creating a fresh context without a direct tap can fail on iPhone Safari.
+   stopActiveAudio({fadeMs:web?0:reason==='blur'?12:0});
+   if(web)webWasInterrupted=true;
+   audioClockWatchdog.resetEpoch();
+   ++audioRecoveryEpoch;
  },
 });
+
+// TEST-only watchdog for an iOS WebKit AudioContext with state='running'
+// while its audio rendering clock no longer advances. Never replay past cues.
+const audioClockWatchdog=createAudioClockWatchdog({
+ getContext:()=>audioContext,
+ isEligible:()=>isPreview&&audioMode==='web'&&!document.hidden&&
+  !audioInterruption.interrupted&&session?.status==='running'&&
+  phaseNow().type!=='done',
+ onStall:ctx=>{
+  if(ctx!==audioContext)return;
+  console.warn('[RT AUDIO TEST] running clock frozen; one bounded recovery');
+  void recoverFrozenAudio(ctx);
+ }
+});
+async function recoverFrozenAudio(ctx){
+ const token=++audioRecoveryEpoch;
+ const stillCurrent=()=>token===audioRecoveryEpoch&&ctx===audioContext&&
+  !document.hidden&&!audioInterruption.interrupted&&
+  session?.status==='running'&&phaseNow().type!=='done';
+ if(!stillCurrent())return;
+ const ok=await pulseStalledContext(ctx,{
+  isCurrent:stillCurrent,timeoutMs:900,settleMs:420
+ });
+ if(!stillCurrent())return;
+ audioClockNeedsGesture=!ok;
+ showAudioRecovery(!ok);
+ console.warn('[RT AUDIO TEST] clock recovery',ok?'PASS':'NEEDS USER TAP');
+}
 function endWebBackgroundReturn(){
- if(!isPreview||audioMode!=='web'||!webWasInterrupted)return;
- // Even if iOS delayed its background callback until foreground, the old
- // context must never regain audible playback on return.
- stopActiveAudio({fadeMs:0});
- webRetirement.retire();
+ if(!isPreview||audioMode!=='web'||document.hidden||audioInterruption.interrupted)return;
+ if(!session||session.status!=='running'||phaseNow().type==='done'){
+   webWasInterrupted=false;showAudioRecovery(false);return;
+ }
+ if(!webWasInterrupted&&audioContext?.state==='running')return;
  webWasInterrupted=false;
+ audioClockWatchdog.resetEpoch();
+ const token=++audioRecoveryEpoch;
+ let finished=false;
+ // If WebKit cannot resume without a user gesture, show a small recovery tap.
+ const timeout=setTimeout(()=>{
+   if(!finished&&token===audioRecoveryEpoch&&!document.hidden)showAudioRecovery(true);
+ },1500);
+ void unlockAudio().then(ok=>{
+   finished=true;clearTimeout(timeout);
+   if(token!==audioRecoveryEpoch||document.hidden||!session||session.status!=='running')return;
+   showAudioRecovery(!ok);
+ }).catch(()=>{
+   finished=true;clearTimeout(timeout);
+   if(token===audioRecoveryEpoch&&!document.hidden)showAudioRecovery(true);
+ });
 }
 window.addEventListener('focus',endWebBackgroundReturn);
+el.audioRecover?.addEventListener('click',()=>{
+  if(document.hidden)return;
+  if(audioClockNeedsGesture&&audioContext){
+   stopActiveAudio({fadeMs:0});
+   webRetirement.retire(); // New context only within the direct user tap.
+   audioClockWatchdog.resetEpoch();
+   audioClockNeedsGesture=false;
+  }
+  const token=++audioRecoveryEpoch;
+  void unlockAudio().then(ok=>{
+    if(token===audioRecoveryEpoch&&!document.hidden)showAudioRecovery(!ok);
+  });
+});
 // Test host only: one-choice transport control, never rendered in production.
 // A mode change is allowed during a running test, but pauses the clock
 // first so that the sound transport never changes in the middle of a cue.
@@ -371,13 +441,22 @@ function draw({notify=true}={}) {
   if(session&&session.status==='running'&&type==='done')releaseScreenOn();
   if(notify&&session&&session.status==='running'&&lastPhase&&!document.hidden){
     if(phase.key!==lastPhase.key){
-      if(phase.type==='work')sound('start');
-      else if(phase.type==='rest')sound('end');
-      else if(phase.type==='done')sound('end');
+      // Never replay a stale gong if WebKit delivers the phase-change callback
+      // seconds late after the user returns to the app.
+      const lateByMs=phase.type==='done'
+        ?Math.max(0,elapsedNow()-phase.totalMs)
+        :phase.durationMs-phase.remainingMs;
+      if(isCueFresh(lateByMs)){
+        // Between rounds: original single start gong. Triple end gong only
+        // after the last configured round (phase done).
+        const cue=cueForPhaseTransition(phase);
+        if(cue)sound(cue);
+      }
     } else {
-      // Skip catch-up bursts on delayed ticks (e.g., the tab was briefly throttled).
+      // A single threshold crossed two seconds late is still a late signal.
       const ticks=crossedCountdown(lastCuePhase||lastPhase,cuePhase);
-      if(ticks.length===1)sound(isPreview?(ticks[0]===10?'ten-double':'single'):(ticks[0]===30||ticks[0]===10)?'slow-double':'single');
+      if(ticks.length===1 && isCueFresh(ticks[0]*1000-cuePhase.remainingMs))
+        sound(isPreview?(ticks[0]===10?'ten-double':'single'):(ticks[0]===30||ticks[0]===10)?'slow-double':'single');
     }
   }
   lastPhase=session?phase:null;
@@ -393,22 +472,29 @@ function startPause(){
     stopActiveAudio({preserveMix:keepForegroundMix()});
     firstClackMeasured=false;
     if(cueLatencyLabel)cueLatencyLabel.textContent='Первый щелчок: задержка ещё не измерена';
-    unlockAudio();
+    if(audioClockNeedsGesture&&audioContext){
+     webRetirement.retire();audioClockWatchdog.resetEpoch();audioClockNeedsGesture=false;
+    }
+    const ready=unlockAudio();
     config=readConfig();updateInputs(config);
     session={status:'running',config,elapsedBeforeMs:0,resumedAt:Date.now()};
     el.settings.open=false;lastPhase=null;lastCuePhase=null;
-    if(config.prepare===0)sound('start');
-    else if(config.prepare<=5)sound('single');
+    showAudioRecovery(false);++audioRecoveryEpoch;
+    if(config.prepare===0){
+      if(audioContext?.state==='running'&&soundBuffers.start)sound('start');
+      else delayedStartGong.schedule(ready,{sessionRef:session,phaseKey:phaseNow().key});
+    }else if(config.prepare<=5)sound('single');
     startupCuePlayed=config.prepare<=5;
     ensureScreenOn();
   } else if(session.status==='running'){
+    showAudioRecovery(false);++audioRecoveryEpoch;
     stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});
     session.elapsedBeforeMs=elapsedNow();session.resumedAt=0;session.status='paused';releaseScreenOn();
   } else {unlockAudio();session.status='running';session.resumedAt=Date.now();ensureScreenOn();}
   save();draw({notify:false});
   return startupCuePlayed;
 }
-function reset(){if(el.settings.open)return;stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});session=null;lastPhase=null;lastCuePhase=null;config=readConfig();save();releaseScreenOn();draw({notify:false});}
+function reset(){if(el.settings.open)return;showAudioRecovery(false);++audioRecoveryEpoch;stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});session=null;lastPhase=null;lastCuePhase=null;config=readConfig();save();releaseScreenOn();draw({notify:false});}
 function buttonSound(){
  if(!isPreview||document.hidden||audioInterruption.interrupted)return false;
  if(audioMode==='html'&&htmlSounds){
@@ -474,5 +560,7 @@ window.addEventListener('pageshow',()=>{
 });
 window.addEventListener('pagehide',save);
 updateInputs(config);restore();draw({notify:false});
-setInterval(()=>{if(!document.hidden)draw({notify:true});},100);
+// A force-quit can restore a running countdown without an unlocked context.
+if(session?.status==='running'&&audioMode==='web')showAudioRecovery(true);
+setInterval(()=>{if(!document.hidden){draw({notify:true});audioClockWatchdog.sample();}},100);
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
