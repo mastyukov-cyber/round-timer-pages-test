@@ -1,0 +1,62 @@
+name: APP-001 v0.8.19 TEST — Frozen WebAudio recovery QA (NO DEPLOY)
+on:
+  push:
+    branches: [qa/round-timer-v0819-frozen-audio-20261115]
+    paths:
+      - 'app.mjs'
+      - 'audio-clock-watchdog.mjs'
+      - 'engine.mjs'
+      - 'html-audio.mjs'
+      - 'audio-guard.mjs'
+      - 'index.html'
+      - 'sw.js'
+      - 'qa/**'
+      - '.github/workflows/v0819-frozen-clock-qa.yml'
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Assert isolated TEST origin and exact version
+        run: |
+          set -euo pipefail
+          node --version
+          node -e "if(process.versions.node.split('.')[0]!=='26')process.exit(1)"
+          node -e "const v=require('./preview-build.json');if(v.version!=='v0.8.19-test'||v.production!==false)process.exit(1)"
+          grep -Fq '미하일 0.8.19' index.html
+          grep -Fq 'round-timer-shell-v0.8.19-test' sw.js
+          grep -Fq "'./audio-clock-watchdog.mjs'" sw.js
+          grep -Fq "volume:kind==='button'?.1944" app.mjs
+          grep -Fq "type==='ten-double'?[0,.155]" app.mjs
+      - name: ES Modules syntax check and original 5 sound assets
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs audio-guard.mjs audio-clock-watchdog.mjs html-audio.mjs audio-duck.mjs web-audio-retire.mjs sw.js; do node --check "$f"; done
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const m=JSON.parse(readFileSync('studio-audio-manifest.json','utf8'));
+          if(m.files.length!==5)throw Error('5 originals expected');
+          for(const f of m.files){
+            const x=readFileSync('sounds/'+f.name);
+            if(x.length!==f.bytes||createHash('sha256').update(x).digest('hex')!==f.sha256)throw Error('MP3 changed: '+f.name);
+          }
+          console.log('PASS 5/5 studio samples byte-identical');
+          JS
+      - name: Bounded frozen clock stress, current lifecycle, timer model
+        run: |
+          set -euo pipefail
+          node --test qa/*.test.mjs tests/timer-model.test.mjs
+      - name: No production deployment or user data
+        run: |
+          test "$GITHUB_REPOSITORY" = 'mastyukov-cyber/round-timer-pages-test'
+          test "$GITHUB_REF_NAME" = 'qa/round-timer-v0819-frozen-audio-20261115'
+          test ! -d production
