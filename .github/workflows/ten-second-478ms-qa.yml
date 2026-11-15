@@ -1,0 +1,48 @@
+name: APP-001 TEST ten-second 478ms rhythm QA (no deployment)
+on:
+  push:
+    branches: [qa/round-timer-ten-second-rhythm-478ms-20261115]
+    paths:
+      - 'app.mjs'
+      - 'html-audio.mjs'
+      - 'sw.js'
+      - 'qa/**'
+      - 'preview-build.json'
+      - '.github/workflows/ten-second-478ms-qa.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Confirm isolated TEST and Node 26
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = 'mastyukov-cyber/round-timer-pages-test'
+          test "${GITHUB_REF_NAME}" = 'qa/round-timer-ten-second-rhythm-478ms-20261115'
+          node -e "if(process.versions.node.split('.')[0]!=='26')process.exit(1)"
+          node --version
+          for f in app.mjs html-audio.mjs sw.js qa/*.test.mjs; do node --check "$f"; done
+      - name: Full synthetic regression plus audio rhythm and cold-start checks
+        run: node --test qa/*.test.mjs tests/timer-model.test.mjs
+      - name: Approved studio MP3 integrity 5/5
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const m=JSON.parse(readFileSync('studio-audio-manifest.json','utf8'));
+          if(m.files.length!==5)throw Error('Five samples expected');
+          for(const f of m.files){
+            const b=readFileSync('sounds/'+f.name);
+            if(b.length!==f.bytes||createHash('sha256').update(b).digest('hex')!==f.sha256)
+              throw Error('MP3 hash mismatch '+f.name);
+          }
+          console.log('PASS 5/5 original MP3 hashes');
+          JS

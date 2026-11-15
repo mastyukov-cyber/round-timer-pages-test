@@ -87,11 +87,11 @@ test('source unchanged until TEST-only integration; no MP3 or user data required
  assert(app.includes('audioClockWatchdog.sample()'));
  assert(app.includes('미하ил')===false);
 });
-test('v0.8.19 release candidates preserve 155ms double and 30%-minus-10% buttons',()=>{
+test('v0.8.19 TEST r478 matches measured reference rhythm at 10 seconds and preserves button gain',()=>{
  const app=source('app.mjs'),html=source('index.html'),fallback=source('html-audio.mjs');
- assert(app.includes("type==='ten-double'?[0,.155]"));
+ assert(app.includes("type==='ten-double'?[0,.478]"));
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
- assert(fallback.includes("},155);"));
+ assert(fallback.includes("},478);"));
  assert(html.includes('미하일 0.8.19'));
  assert(!html.includes('미하일 ВЕРСИЯ'));
  assert(html.includes('audioRecoveryButton'));
