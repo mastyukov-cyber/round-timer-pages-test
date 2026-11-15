@@ -1,0 +1,46 @@
+name: APP-001 TEST 0.8.19.1 — version identity and offline cache QA
+on:
+  push:
+    branches: [qa/round-timer-visible-build-08191-20261115]
+    paths:
+      - 'index.html'
+      - 'app.mjs'
+      - 'sw.js'
+      - 'preview-build.json'
+      - 'qa/**'
+      - '.github/workflows/visible-build-08191-qa.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Verify Node 26 and syntax
+        run: |
+          set -euo pipefail
+          node --version
+          node -e "if(process.versions.node.split('.')[0]!=='26')process.exit(1)"
+          for f in app.mjs audio-clock-watchdog.mjs sw.js qa/*.test.mjs; do node --check "$f"; done
+      - name: Version identity, existing audio policy and lifecycle regression
+        run: node --test qa/*.test.mjs tests/timer-model.test.mjs
+      - name: Approved MP3 SHA-256 5 of 5
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const m=JSON.parse(readFileSync('studio-audio-manifest.json','utf8'));
+          if(m.files.length!==5)throw Error('Five MP3 originals expected');
+          for(const f of m.files){
+            const bytes=readFileSync('sounds/'+f.name);
+            if(bytes.length!==f.bytes||createHash('sha256').update(bytes).digest('hex')!==f.sha256)
+              throw Error('MP3 changed '+f.name);
+          }
+          console.log('PASS 5/5 studio MP3 hashes');
+          JS

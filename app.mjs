@@ -4,7 +4,7 @@ import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
 import {createAudioClockWatchdog,pulseStalledContext} from './audio-clock-watchdog.mjs';
-const DIAGNOSTICS_VERSION='0.8.19-test';
+const DIAGNOSTICS_VERSION='0.8.19.1-test';
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
