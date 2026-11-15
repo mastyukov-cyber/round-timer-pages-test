@@ -1,4 +1,4 @@
-name: APP-001 RC12 QA — iPhone audio timing, original MP3 hashes and offline
+name: APP-001 TEST v0.8.19 QA — WebKit clock, timing, original MP3 and offline
 on:
   push:
     branches: [main]
@@ -9,6 +9,8 @@ on:
       - 'studio-audio-manifest.json'
       - 'sounds/**'
       - 'audio-guard.mjs'
+      - 'audio-clock-watchdog.mjs'
+      - 'qa/**'
       - 'html-audio.mjs'
       - 'web-audio-retire.mjs'
       - 'audio-duck.mjs'
@@ -29,12 +31,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
       - name: Syntax and required assets
         run: |
           set -euo pipefail
           for f in index.html app.mjs audio-guard.mjs html-audio.mjs web-audio-retire.mjs audio-duck.mjs engine.mjs styles.css sw.js diagnostics/schema.mjs diagnostics/sender.mjs privacy.html preview-build.json studio-audio-manifest.json sounds/button.mp3 sounds/studio-gong-start.mp3 sounds/studio-gong-end.mp3 sounds/woodclack-single.mp3 sounds/woodclack-double.mp3; do test -s "$f"; done
-          for f in app.mjs audio-guard.mjs html-audio.mjs web-audio-retire.mjs audio-duck.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs; do node --check "$f"; done
+          for f in app.mjs audio-guard.mjs audio-clock-watchdog.mjs html-audio.mjs web-audio-retire.mjs audio-duck.mjs engine.mjs sw.js diagnostics/schema.mjs diagnostics/sender.mjs; do node --check "$f"; done
       - name: Preview-only smoke, audio pause/background and origin safety
-        run: node --test tests/*.test.mjs
+        run: node --test qa/*.test.mjs
 
 # Safe re-trigger after GitHub Actions reported failed runs with zero jobs (2026-11-09).
