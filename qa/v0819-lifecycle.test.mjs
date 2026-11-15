@@ -173,7 +173,7 @@ test('155ms HTML fallback, quieter WebAudio buttons, stable UI and new offline c
   schedule:(fn,ms)=>{htmlAudioTasks.push({fn,ms});return htmlAudioTasks.at(-1);},unschedule:()=>{}
  });
  html.play('ten-double');
- assert.equal(htmlAudioTasks[0].ms,145);
+ assert.equal(htmlAudioTasks[0].ms,155);
  assert.deepEqual(hits,['clack']);
  htmlAudioTasks[0].fn();
  assert.deepEqual(hits,['clack','clack']);
