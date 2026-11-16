@@ -4,14 +4,16 @@ import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
 import {createAudioClockWatchdog,pulseStalledContext} from './audio-clock-watchdog.mjs';
-const DIAGNOSTICS_VERSION='0.8.19.2-test';
+import {cp18WindowFromSearch,deferredButtonCueAllowed} from './cp18-audio-window.mjs';
+const CP18_BUTTON_WINDOW_MS=cp18WindowFromSearch(globalThis.location?.search||'');
+const DIAGNOSTICS_VERSION=CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`;
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
 attachBrowserErrorCapture({target:window,sender:diagnosticSender,version:DIAGNOSTICS_VERSION});
 // Error-only telemetry; no usage, no personal information and no UI changes.
 import {normalizeConfig,computePhase,formatTime,WORK_CHOICES,REST_CHOICES,ROUND_CHOICES,PREPARE_CHOICES,crossedCountdown,cueForPhaseTransition} from './engine.mjs';
-const STORAGE_KEY='timer-active-session-v1';
+const STORAGE_KEY=CP18_BUTTON_WINDOW_MS===null?'timer-active-session-v1':`timer-active-session-cp18-${CP18_BUTTON_WINDOW_MS}-v1`;
 // RC6 preview resets earlier transport and speculative 50% options.
 // RC13 TEST: reset previously saved audio mode to reliable HTML default.
 const PREVIEW_AUDIO_KEY='round-timer-preview-transport-rc13-v1';
@@ -30,6 +32,10 @@ if(AUDIO_QA_CONTROLS && isPreview){
 }
 
 const byId=id=>document.getElementById(id);
+if(CP18_BUTTON_WINDOW_MS!==null){
+ const label=document.querySelector?.('.preview-version');
+ if(label)label.textContent=`미하일 0.8.19.3 · TEST ${CP18_BUTTON_WINDOW_MS} мс`;
+}
 const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),roundCurrent:byId('roundCurrent'),roundTotal:byId('roundTotal'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),audioRecover:byId('audioRecoveryButton'),form:byId('settingsForm')};
 function durationLabel(sec) {
   if(sec===0) return '0 секунд';
@@ -513,14 +519,26 @@ function buttonSound(){
  const ready=(!audioContext||audioContext.state!=='running'||!soundBuffers.button)
    ?unlockAudio():Promise.resolve(true);
  if(sound('button'))return true;
+ // CP18 A/B only: try the original preloaded MP3 in this same gesture.
+ // If that transport accepted the press, never add a delayed WebAudio echo.
+ if(CP18_BUTTON_WINDOW_MS!==null&&htmlSounds?.playButton()){
+   void Promise.resolve(ready).catch(()=>{});
+   return true;
+ }
  const pressedAt=Date.now();
- // Do not play a previous button press after a noticeable delay.
- void Promise.resolve(ready).then(ok=>{
-   const age=Date.now()-pressedAt;
-   if(ok&&request===buttonCueEpoch&&age>=0&&age<=180&&
-      !document.hidden&&!audioInterruption.interrupted)
-     sound('button');
- }).catch(()=>{});
+ // Normal TEST root retains the original <=180ms policy, A/B uses 0 or 30.
+ const maxLateMs=CP18_BUTTON_WINDOW_MS===null?180:CP18_BUTTON_WINDOW_MS;
+ if(maxLateMs>0){
+   void Promise.resolve(ready).then(ok=>{
+     const age=Date.now()-pressedAt;
+     if(ok&&request===buttonCueEpoch&&deferredButtonCueAllowed(age,maxLateMs)&&
+        !document.hidden&&!audioInterruption.interrupted)
+       sound('button');
+   }).catch(()=>{});
+ }else{
+   // 0ms = no deferred replay, not an added delay to immediate playback.
+   void Promise.resolve(ready).catch(()=>{});
+ }
  return true; // Prevent a duplicate sound on the later click.
 }
 // Pointerdown plays the button sound in the direct iOS user gesture.
