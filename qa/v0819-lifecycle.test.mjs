@@ -5,6 +5,7 @@ import {createHtmlAudioController} from '../html-audio.mjs';
 
 const appSource=()=>readFileSync(new URL('../app.mjs',import.meta.url),'utf8');
 const source=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const sourceFile=source;
 
 async function simulate(label,run,{delayInitialResume=false}={}){
  const keys=['window','document','navigator','location','localStorage','fetch','getComputedStyle','requestAnimationFrame','setInterval'];
@@ -180,9 +181,9 @@ test('478ms HTML fallback at ten seconds, stable UI and fresh offline cache',()=
  const app=appSource(),htmlPage=source('index.html'),sw=source('sw.js');
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
  assert(app.includes("type==='ten-double'?[0,.478]"));
- assert(htmlPage.includes('미하일 0.8.19.1'));
+ assert(htmlPage.includes('미하일 0.8.19.2'));
  assert(htmlPage.includes('id="audioRecoveryButton"'));
- assert(sw.includes("round-timer-shell-v0.8.19.1-test-r478"));
+ assert(sw.includes("round-timer-shell-v0.8.19.2-test-audioidle"));
  assert(!htmlPage.includes('ТЕСТОВАЯ ВЕРСИЯ'));
 });
 
@@ -218,5 +219,53 @@ test('2-second late phase-change gong is discarded, but next timely work gong so
   assert.equal(gongEnds(),0,'stale REST transition not replayed');
   time(base+90080);tick(); // WORK 2 begins at 90s; callback just 80ms late
   assert.equal(gongStarts(),2,'next timely gong is not muted');
+ });
+});
+
+// New independent regressions: first user gesture, idle return, and settings
+// close pointer ownership. No real iPhone speaker assertions from fake Web Audio.
+test('cold first RESET tap plays the approved button cue after decoding',async()=>{
+ await simulate('first-cold-button',async({el,tap,played,flush,instances})=>{
+   assert.equal(instances.length,1,'decode begins silently before gesture');
+   tap(el.resetButton);
+   await flush();
+   assert.equal(played.filter(p=>p.path?.includes('button.mp3')).length,1);
+ });
+});
+test('idle foreground return re-arms WebAudio and the next button sounds',async()=>{
+ await simulate('idle-foreground-button',async({el,tap,played,hide,show,flush,instances})=>{
+   tap(el.resetButton);await flush();
+   const before=played.filter(p=>p.path?.includes('button.mp3')).length;
+   const ctx=instances[0];
+   hide();ctx.state='interrupted';
+   show();await flush();
+   assert.equal(ctx.state,'running','idle screen must restore interrupted audio');
+   assert.equal(el.audioRecoveryButton.hidden,true);
+   tap(el.resetButton);await flush();
+   assert.equal(played.filter(p=>p.path?.includes('button.mp3')).length,before+1);
+ });
+});
+test('slow audio resume does not replay a stale button sound after 350ms',async()=>{
+ await simulate('stale-first-button',async({el,tap,played,time,getTime,instances,flush})=>{
+   tap(el.resetButton);
+   assert.equal(played.filter(p=>p.path?.includes('button.mp3')).length,0);
+   time(getTime()+350);
+   instances[0].release();
+   await flush();
+   assert.equal(played.filter(p=>p.path?.includes('button.mp3')).length,0);
+ },{delayInitialResume:true});
+});
+test('closing settings leaves the preparation picker value unchanged',async()=>{
+ await simulate('close-settings-no-picker',async({el,tap,flush})=>{
+   el.settings.open=true;
+   const original=el.prepareInput.value;
+   tap(el.closeSettingsButton);
+   await flush();
+   assert.equal(el.settings.open,false);
+   assert.equal(el.prepareInput.value,original);
+   const source=appSource(),css=sourceFile('styles.css');
+   assert(source.includes('setPointerCapture?.(event.pointerId)'));
+   assert(source.includes("event.stopPropagation?.()"));
+   assert(css.includes('.settings-form label:nth-of-type(4) {margin-bottom:8px;}'));
  });
 });

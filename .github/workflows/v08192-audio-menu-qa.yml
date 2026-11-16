@@ -1,0 +1,54 @@
+name: APP-001 TEST 0.8.19.2 — cold button, idle audio, menu safety (NO DEPLOY)
+on:
+  push:
+    branches: [qa/round-timer-v08192-audio-idle-menu-20261116]
+    paths:
+      - 'app.mjs'
+      - 'styles.css'
+      - 'index.html'
+      - 'sw.js'
+      - 'qa/**'
+      - '.github/workflows/v08192-audio-menu-qa.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Check TEST version and JavaScript syntax
+        run: |
+          set -euo pipefail
+          node --version
+          node -e "if(process.versions.node.split('.')[0]!=='26')process.exit(1)"
+          grep -Fq '미하일 0.8.19.2' index.html
+          grep -Fq 'round-timer-shell-v0.8.19.2-test-audioidle' sw.js
+          grep -Fq "type==='ten-double'?[0,.478]" app.mjs
+          grep -Fq "volume:kind==='button'?.1944" app.mjs
+          for f in app.mjs audio-clock-watchdog.mjs audio-guard.mjs sw.js qa/*.test.mjs; do node --check "$f"; done
+      - name: Complete synthetic QA, including idle no-session and settings gesture
+        run: node --test qa/*.test.mjs tests/timer-model.test.mjs
+      - name: Verify all approved sound assets remain byte-identical
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const manifest=JSON.parse(readFileSync('studio-audio-manifest.json','utf8'));
+          if(manifest.files.length!==5)throw Error('5 original samples expected');
+          for(const f of manifest.files){
+           const b=readFileSync('sounds/'+f.name);
+           if(b.length!==f.bytes||createHash('sha256').update(b).digest('hex')!==f.sha256)
+            throw Error('Original sound altered: '+f.name);
+          }
+          console.log('PASS 5/5 original studio MP3 SHA256');
+          JS
+      - name: Block production deployment from isolated QA
+        run: |
+          test "$GITHUB_REPOSITORY" = 'mastyukov-cyber/round-timer-pages-test'
+          test "$GITHUB_REF_NAME" = 'qa/round-timer-v08192-audio-idle-menu-20261116'
