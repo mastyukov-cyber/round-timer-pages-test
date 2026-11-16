@@ -1,12 +1,12 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.19.1-test",
+  "version": "v0.8.19.2-test",
   "production": false,
   "source_repository": "mastyukov-cyber/round-timer-pages-test",
   "baseline_repository": "mastyukov/round-timer",
   "baseline_sha": "9bb1dc12444bf846f72fcd425688387cbc57a5fb",
   "deploy_repository": "mastyukov-cyber/round-timer-pages-test",
-  "tests": "WebKit stall detection + bounded suspend-resume; 478ms 10-second double clacks (matched to user reference MP3), button gain 0.1944, 미하일 0.8.19.1",
+  "tests": "WebKit stall detection + bounded suspend-resume; 478ms 10-second double clacks (matched to user reference MP3), button gain 0.1944, 미하일 0.8.19.2",
   "mac_required": false,
-  "note": "TEST ONLY; current FINAL v0.8.18 behavior copied to TEST, with controlled AudioContext recovery. iPhone QA required."
+  "note": "TEST only: early sound decoding, foreground audio restoration while idle, capture settings close gesture; physical iPhone validation remains pending."
 }
