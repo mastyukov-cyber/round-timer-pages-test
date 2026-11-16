@@ -1,0 +1,55 @@
+name: APP-001 CP18 A/B TEST — isolated QA (NO DEPLOY)
+on:
+  push:
+    branches:
+      - assistant/round-timer-cp18-ab-0ms-30ms-20261116
+      - main
+    paths:
+      - app.mjs
+      - sw.js
+      - cp18-audio-window.mjs
+      - qa/**
+      - preview-build.json
+      - .github/workflows/cp18-ab-qa.yml
+permissions:
+  contents: read
+jobs:
+  qa:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Syntax and exact TEST identity
+        run: |
+          set -euo pipefail
+          test "${GITHUB_REPOSITORY}" = "mastyukov-cyber/round-timer-pages-test"
+          node --version
+          for f in app.mjs cp18-audio-window.mjs sw.js qa/*.test.mjs; do node --check "$f"; done
+          grep -Fq 'round-timer-shell-v0.8.19.3-test-cp18-ab' sw.js
+          grep -Fq 'cp18-audio-window.mjs' sw.js
+          grep -Fq 'CP18_BUTTON_WINDOW_MS===null?180:CP18_BUTTON_WINDOW_MS' app.mjs
+          grep -Fq "type==='ten-double'?[0,.478]" app.mjs
+      - name: Complete timer and iPhone-audio synthetic regression
+        run: node --test qa/*.test.mjs tests/timer-model.test.mjs
+      - name: Verify five immutable approved MP3 SHA-256 fingerprints
+        run: |
+          node --input-type=module - <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const manifest=JSON.parse(readFileSync('studio-audio-manifest.json','utf8'));
+          if(manifest.files.length!==5)throw Error('Expected exactly five studio MP3');
+          for(const item of manifest.files){
+            const content=readFileSync('sounds/'+item.name);
+            if(content.length!==item.bytes)throw Error('Unexpected bytes: '+item.name);
+            if(createHash('sha256').update(content).digest('hex')!==item.sha256)throw Error('SHA-256 changed: '+item.name);
+          }
+          console.log('PASS: 5/5 approved studio MP3 byte-identical');
+          JS
+      - name: Reject any accidental deployment in QA
+        run: |
+          echo 'QA-only workflow: no pages deployment, no production repositories'
