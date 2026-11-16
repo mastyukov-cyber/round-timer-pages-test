@@ -21,5 +21,5 @@ test('audio stays 478ms; first-tap issue intentionally not addressed in this bui
  assert(app.includes("type==='ten-double'?[0,.478]"));
  assert(htmlAudio.includes("playElement(elements.clack2,token,'clack2');},478);"));
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
- assert(app.includes("DIAGNOSTICS_VERSION='0.8.19.2-test'"));
+ assert(app.includes("CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test'"));
 });
