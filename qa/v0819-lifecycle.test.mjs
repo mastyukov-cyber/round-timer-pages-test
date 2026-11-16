@@ -113,13 +113,15 @@ test('cold iPhone START with zero preparation plays one gong after delayed resum
  },{delayInitialResume:true});
 });
 
-test('RESET cancels a delayed cold-start gong, including after loading finishes',async()=>{
+test('RESET suppresses delayed gong without attempting to undo an already heard cold-start gong',async()=>{
  await simulate('cancel-start',async({el,tap,instances,played,flush})=>{
   tap(el.startPauseButton);
+  const alreadyHeard=played.filter(p=>p.path?.includes('studio-gong-start.mp3')).length;
   tap(el.resetButton);
   instances[0].release();
   await flush();
-  assert.equal(played.filter(p=>p.path?.includes('studio-gong-start.mp3')).length,0);
+  assert.equal(played.filter(p=>p.path?.includes('studio-gong-start.mp3')).length,alreadyHeard,
+    'RESET may not undo a gong already heard, but must prevent any late replay');
  });
 });
 
