@@ -5,7 +5,7 @@ import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
 import {createAudioClockWatchdog,pulseStalledContext} from './audio-clock-watchdog.mjs';
 import {cp18WindowFromSearch,deferredButtonCueAllowed} from './cp18-audio-window.mjs';
-import {CP19_MODES,cp19Mode,cp19Paths,cp19PrimeAudio} from './cp19-audio-modes.mjs';
+import {CP19_MODES,cp19Mode,cp19Paths,cp19PrimeAudio,cp19CanPlayStartCue} from './cp19-audio-modes.mjs';
 import {createCP19KeepAlive} from './cp19-keepalive.mjs';
 import {createCP19WorkletHost} from './cp19-worklet-host.mjs';
 const CP19_MODE=cp19Mode(globalThis.location?.search||'');
@@ -103,6 +103,9 @@ function unlockAudio(){
      if(!webRetirement.isCurrent(context,token)||document.hidden||context.state!=='running')return false;
      await preloadSounds();
      if(!webRetirement.isCurrent(context,token)||context.state!=='running'||!soundBuffers.start)return false;
+     if(CP19&&Object.keys(SOUND_PATHS).some(name=>!soundBuffers[name])){
+      cp19Status('загрузка звуков не завершена');return false;
+     }
      if(CP19?.transport==='worklet'){
       const ok=await cp19Worklet.prepare(context,soundBuffers);
       if(!ok){cp19Status('AudioWorklet недоступен');return false;}
@@ -200,7 +203,7 @@ function preloadSounds(){
      void diagnosticSender.report({event:'audio_failure',code:'ASSET_LOAD_FAILED',component:'audio',version:DIAGNOSTICS_VERSION});
    }
  })).then(()=>{
-  if(CP19&&(!soundBuffers.button||!soundBuffers.start)&&webRetirement.isCurrent(context,token))soundsLoading=null;
+  if(CP19&&Object.keys(SOUND_PATHS).some(name=>!soundBuffers[name])&&webRetirement.isCurrent(context,token))soundsLoading=null;
  });return soundsLoading;
 }
 function sound(type){
@@ -537,7 +540,9 @@ function startPause(){
     el.settings.open=false;lastPhase=null;lastCuePhase=null;
     showAudioRecovery(false);++audioRecoveryEpoch;
     if(config.prepare===0){
-      if(audioContext?.state==='running'&&soundBuffers.start)sound('start');
+      if(CP19?cp19CanPlayStartCue({contextState:audioContext?.state,bufferReady:!!soundBuffers.start,
+        transport:CP19.transport,workletReady:cp19Worklet.ready}):
+        (audioContext?.state==='running'&&soundBuffers.start))sound('start');
       else delayedStartGong.schedule(ready,{sessionRef:session,phaseKey:phaseNow().key});
     }else if(config.prepare<=5)sound('single');
     startupCuePlayed=config.prepare<=5;

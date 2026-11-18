@@ -17,6 +17,11 @@ export function cp19Paths(codec){
    clack:root+'woodclack-single'+ext,double:root+'woodclack-double'+ext,
    button:root+'button'+ext};
 }
+/** Do not consume a start gong before the worklet host has confirmed readiness. */
+export function cp19CanPlayStartCue({contextState,bufferReady,transport,workletReady}){
+ return contextState==='running' && !!bufferReady &&
+   (transport!=='worklet'||!!workletReady);
+}
 export function cp19PrimeAudio(context){
  if(!context||context.state==='closed')return false;
  try{
