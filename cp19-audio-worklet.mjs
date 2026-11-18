@@ -1,69 +1,50 @@
-/**
- * CP19 AudioWorklet TEST experiment.
- * Plays already-decoded PCM. No recording, telemetry, external networking,
- * SharedArrayBuffer, or continuous synthetic sound generator.
- */
+/* CP19 TEST: genuine PCM playback in an AudioWorkletProcessor; no tracking. */
 class CP19Sampler extends AudioWorkletProcessor {
  constructor(){
-  super();
-  this.bank=new Map();
-  this.voices=[];
-  this.port.onmessage=event=>{
-   const msg=event?.data||{};
-   if(msg.type==='load-bank'){
-    this.voices.length=0;
-    this.bank.clear();
-    for(const item of msg.items||[]){
-     if(!item||typeof item.name!=='string'||!Array.isArray(item.channels)||!item.channels.length)continue;
-     const channels=item.channels.filter(ch=>ch instanceof Float32Array);
-     if(!channels.length||channels.some(c=>!c.length))continue;
-     this.bank.set(item.name,{channels,length:Math.min(...channels.map(c=>c.length))});
+  super();this.samples=new Map();this.voices=[];
+  this.port.onmessage=e=>{
+   const m=e?.data||{};
+   if(m.type==='load'){
+    this.voices=[];this.samples.clear();
+    for(const item of m.items||[]){
+     if(typeof item.name!=='string'||!Array.isArray(item.channels)||!item.channels.length)continue;
+     const channels=item.channels.filter(ch=>ch instanceof Float32Array&&ch.length>0);
+     if(!channels.length)continue;
+     this.samples.set(item.name,{channels,length:Math.min(...channels.map(ch=>ch.length))});
     }
-    this.port.postMessage({type:'ready',count:this.bank.size});
-   }else if(msg.type==='play'){
-    const data=this.bank.get(msg.name);
-    if(!data)return;
-    const category=msg.category==='button'?'button':'cue';
-    const volume=Number.isFinite(msg.volume)?Math.max(0,Math.min(1,msg.volume)):1;
-    for(const offset of Array.isArray(msg.offsets)?msg.offsets:[0]){
+    this.port.postMessage({type:'ready',count:this.samples.size});
+   } else if(m.type==='play'){
+    const sample=this.samples.get(m.name);if(!sample)return;
+    const offsets=Array.isArray(m.offsets)?m.offsets:[0];
+    const volume=Number.isFinite(m.volume)?Math.min(1,Math.max(0,m.volume)):1;
+    for(const offset of offsets){
      if(!Number.isFinite(offset)||offset<0||offset>10)continue;
-     this.voices.push({data,volume,category,start:currentFrame+Math.round(offset*sampleRate)});
+     this.voices.push({sample,start:currentFrame+Math.round(offset*sampleRate),volume,
+       category:m.category==='button'?'button':'cue'});
     }
-   }else if(msg.type==='stop'){
-    this.voices.length=0;
-   }
+   }else if(m.type==='stop')this.voices=[];
   };
  }
  process(inputs,outputs){
-  const channels=outputs[0];
-  if(!channels||!channels.length)return true;
-  const block=channels[0].length;
+  const out=outputs[0];if(!out?.length)return true;
+  const count=out[0].length;
   for(const voice of this.voices){
-   const {data,start,volume,category}=voice;
-   const attack=Math.max(1,Math.round(.004*sampleRate));
-   const release=Math.max(1,Math.round(.012*sampleRate));
-   for(let i=0;i<block;i++){
+   const {sample,start,category,volume}=voice;
+   for(let i=0;i<count;i++){
     const pos=currentFrame+i-start;
-    if(pos<0||pos>=data.length)continue;
-    let level=volume;
+    if(pos<0||pos>=sample.length)continue;
+    let amp=volume;
     if(category==='button'){
-     const a=Math.min(1,pos/attack), r=Math.min(1,(data.length-1-pos)/release);
-     level=0.015+(volume-0.015)*Math.max(0,Math.min(a,r));
+     const attack=Math.max(1,Math.floor(sampleRate*.004));
+     const release=Math.max(1,Math.floor(sampleRate*.012));
+     amp=0.015+(volume-0.015)*Math.max(0,Math.min(1,pos/attack,(sample.length-1-pos)/release));
     }
-    for(let c=0;c<channels.length;c++){
-     const input=data.channels[Math.min(c,data.channels.length-1)];
-     channels[c][i]+=input[pos]*level;
-    }
+    for(let c=0;c<out.length;c++)out[c][i]+=sample.channels[Math.min(c,sample.channels.length-1)][pos]*amp;
    }
   }
-  const until=currentFrame+block;
-  this.voices=this.voices.filter(voice=>until<voice.start+voice.data.length);
-  for(const channel of channels){
-   for(let i=0;i<channel.length;i++){
-    if(channel[i]>1)channel[i]=1;
-    else if(channel[i]<-1)channel[i]=-1;
-   }
-  }
+  const end=currentFrame+count;
+  this.voices=this.voices.filter(v=>end<v.start+v.sample.length);
+  for(const ch of out)for(let i=0;i<ch.length;i++)ch[i]=Math.max(-1,Math.min(1,ch[i]));
   return true;
  }
 }

@@ -1,0 +1,42 @@
+{
+  "source_test_head": "d29b7b3035bf044ddc8acd0cb921dbd0453c244e",
+  "codec": "PCM16-48000-MONO",
+  "originals_preserved": true,
+  "files": [
+    {
+      "original": "button.mp3",
+      "mp3_sha256": "7568fbddf7d7e7af867a8f3d61cc1a39aa10b23239f71b691defd1514780e17e",
+      "wav": "button.wav",
+      "wav_bytes": 31758,
+      "wav_sha256": "345ea46a7b0420e17154895a4afe19e1b5439d0e03e1c3bc9b18d5f115d05517"
+    },
+    {
+      "original": "studio-gong-end.mp3",
+      "mp3_sha256": "5a11b07fa9056952b8aeb74996806ca707b5cc69dedac4d088a081fc64ecb55a",
+      "wav": "studio-gong-end.wav",
+      "wav_bytes": 192078,
+      "wav_sha256": "bc5a7d5d6c7d3b8e30c366887c187158ebe0f8ceffb644e93e7193da5aed6c19"
+    },
+    {
+      "original": "studio-gong-start.mp3",
+      "mp3_sha256": "bc6e72b76bacdc54dd0bf0dcbc636ddaa9ec91d123b88e0f03c4e954038e9505",
+      "wav": "studio-gong-start.wav",
+      "wav_bytes": 182478,
+      "wav_sha256": "60ff9f9908e4e0976888801dfe8d6c7b2e78160b2e3440d7d5107eb7852eaa20"
+    },
+    {
+      "original": "woodclack-double.mp3",
+      "mp3_sha256": "9801847a45300f972cf5d381e20bbbdf54f743c0bfd80293b38b2b0bd3439a28",
+      "wav": "woodclack-double.wav",
+      "wav_bytes": 77838,
+      "wav_sha256": "d90eff1cc9edffae69286da0edcacd9579af79d292c9c27f4e680410b525f914"
+    },
+    {
+      "original": "woodclack-single.mp3",
+      "mp3_sha256": "9b1287db452b68cfede024748dd8d5ed5755e61950509354b4e197e9193d2918",
+      "wav": "woodclack-single.wav",
+      "wav_bytes": 30798,
+      "wav_sha256": "ee49a5976177517e42c7b843f5791e0c6821294a10db7738b24c1969bf2fda8f"
+    }
+  ]
+}

@@ -27,10 +27,11 @@ test('0ms never queues a late WebAudio button echo; 30ms window is strict',()=>{
 test('CP18 branch uses original MP3 directly on gesture before late promise',async()=>{
  const srcApp=src('app.mjs');
  assert(srcApp.includes("if(sound('button'))return true;"));
- assert(srcApp.includes("if(CP18_BUTTON_WINDOW_MS!==null&&htmlSounds?.playButton())"));
+ assert(srcApp.includes("if(!CP19&&CP18_BUTTON_WINDOW_MS!==null&&htmlSounds?.playButton())"));
  assert(srcApp.includes('deferredButtonCueAllowed(age,maxLateMs)'));
  assert(srcApp.includes('CP18_BUTTON_WINDOW_MS===null?180:CP18_BUTTON_WINDOW_MS'));
- assert(srcApp.includes('const STORAGE_KEY=CP18_BUTTON_WINDOW_MS===null?'));
+ assert(srcApp.includes("CP18_BUTTON_WINDOW_MS===null?'timer-active-session-v1'"));
+ assert(srcApp.includes('timer-active-session-cp19-${CP19_MODE}-v1'));
  assert(srcApp.includes('if(label)label.textContent='));
  const played=[];
  const makeAudio=path=>({
@@ -48,7 +49,7 @@ test('CP18 branch uses original MP3 directly on gesture before late promise',asy
 });
 test('offline TEST updates to unique CP18 cache and preloads policy without touching audio files',()=>{
  const sw=src('sw.js');
- assert(sw.includes("round-timer-shell-v0.8.19.3-test-cp18-ab"));
+ assert(sw.includes("round-timer-shell-v0.8.19.4-test-cp19-five"));
  assert(sw.includes("'./cp18-audio-window.mjs'"));
  assert(sw.includes("const local = await cache.match(event.request)"));
  assert(sw.includes("const offlinePage = await cache.match('./')"));

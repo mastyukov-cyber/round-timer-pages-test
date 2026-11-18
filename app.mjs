@@ -5,15 +5,20 @@ import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
 import {createAudioClockWatchdog,pulseStalledContext} from './audio-clock-watchdog.mjs';
 import {cp18WindowFromSearch,deferredButtonCueAllowed} from './cp18-audio-window.mjs';
-const CP18_BUTTON_WINDOW_MS=cp18WindowFromSearch(globalThis.location?.search||'');
-const DIAGNOSTICS_VERSION=CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`;
+import {CP19_MODES,cp19Mode,cp19Paths,cp19PrimeAudio} from './cp19-audio-modes.mjs';
+import {createCP19KeepAlive} from './cp19-keepalive.mjs';
+import {createCP19WorkletHost} from './cp19-worklet-host.mjs';
+const CP19_MODE=cp19Mode(globalThis.location?.search||'');
+const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
+const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
+const DIAGNOSTICS_VERSION=CP19?`0.8.19.4-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
 attachBrowserErrorCapture({target:window,sender:diagnosticSender,version:DIAGNOSTICS_VERSION});
 // Error-only telemetry; no usage, no personal information and no UI changes.
 import {normalizeConfig,computePhase,formatTime,WORK_CHOICES,REST_CHOICES,ROUND_CHOICES,PREPARE_CHOICES,crossedCountdown,cueForPhaseTransition} from './engine.mjs';
-const STORAGE_KEY=CP18_BUTTON_WINDOW_MS===null?'timer-active-session-v1':`timer-active-session-cp18-${CP18_BUTTON_WINDOW_MS}-v1`;
+const STORAGE_KEY=CP19?`timer-active-session-cp19-${CP19_MODE}-v1`:(CP18_BUTTON_WINDOW_MS===null?'timer-active-session-v1':`timer-active-session-cp18-${CP18_BUTTON_WINDOW_MS}-v1`);
 // RC6 preview resets earlier transport and speculative 50% options.
 // RC13 TEST: reset previously saved audio mode to reliable HTML default.
 const PREVIEW_AUDIO_KEY='round-timer-preview-transport-rc13-v1';
@@ -32,7 +37,10 @@ if(AUDIO_QA_CONTROLS && isPreview){
 }
 
 const byId=id=>document.getElementById(id);
-if(CP18_BUTTON_WINDOW_MS!==null){
+if(CP19){
+ const label=document.querySelector?.('.preview-version');
+ if(label)label.textContent=`미하일 0.8.19.4 · TEST ${CP19.label}`;
+}else if(CP18_BUTTON_WINDOW_MS!==null){
  const label=document.querySelector?.('.preview-version');
  if(label)label.textContent=`미하일 0.8.19.3 · TEST ${CP18_BUTTON_WINDOW_MS} мс`;
 }
@@ -48,6 +56,25 @@ for(const [element,choices] of [[el.work,WORK_CHOICES],[el.rest,REST_CHOICES],[e
   for(const c of choices) {const option=document.createElement('option');option.value=String(c);option.textContent=c==='infinity'?'∞ Бесконечно':element===el.rounds?String(c):durationLabel(c);element.append(option);}
 }
 let config=normalizeConfig({work:60}),session=null,lastPhase=null,lastCuePhase=null,audioContext=null,wakeLock=null,wasHidden=false;
+const cp19KeepAlive=createCP19KeepAlive();
+const cp19Worklet=createCP19WorkletHost();
+let cp19WorkletBusy=false;
+function cp19Status(message){
+ if(!CP19)return;
+ const el=document.querySelector?.('.preview-version');
+ if(el)el.textContent=`미하일 0.8.19.4 · TEST ${CP19.label} · ${message}`;
+}
+function cp19Gesture(){
+ if(!CP19||document.hidden)return;
+ audioGestureSeen=true;
+ try{
+  if(audioContext?.state==='closed')webRetirement.retire();
+  audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
+  if(CP19.prime)cp19PrimeAudio(audioContext);
+  void unlockAudio();
+ }catch(_){}
+}
+if(CP19?.prime)document.addEventListener('pointerdown',cp19Gesture,{capture:true});
 function readConfig(){return normalizeConfig({work:el.work.value,rest:el.rest.value,rounds:el.rounds.value,prepare:el.prepare.value});}
 function updateInputs(c){el.work.value=c.work;el.rest.value=c.rest;el.rounds.value=c.rounds;el.prepare.value=c.prepare;}
 function save(){try{if(session)localStorage.setItem(STORAGE_KEY,JSON.stringify(session));else localStorage.removeItem(STORAGE_KEY);}catch(_){}}
@@ -75,6 +102,13 @@ function unlockAudio(){
    return Promise.resolve(resume).then(async()=>{
      if(!webRetirement.isCurrent(context,token)||document.hidden||context.state!=='running')return false;
      await preloadSounds();
+     if(!webRetirement.isCurrent(context,token)||context.state!=='running'||!soundBuffers.start)return false;
+     if(CP19?.transport==='worklet'){
+      const ok=await cp19Worklet.prepare(context,soundBuffers);
+      if(!ok){cp19Status('AudioWorklet недоступен');return false;}
+     }
+     if(CP19?.keepalive)cp19KeepAlive.start(context);
+     if(CP19)cp19Status('звук готов');
      return webRetirement.isCurrent(context,token)&&context.state==='running'&&!!soundBuffers.start;
    }).catch(()=>{
      void diagnosticSender.report({event:'audio_failure',code:'AUDIO_PLAY_REJECTED',component:'audio',version:DIAGNOSTICS_VERSION});
@@ -85,7 +119,7 @@ function unlockAudio(){
 // Original boxing-style sounds, not extracted from any third-party app.
 // Audio is unlocked on a direct button press; silence in the background is expected on iOS.
 // RC11 studio recordings are TEST-only; production retains the approved originals.
-const SOUND_PATHS=isPreview?{
+const SOUND_PATHS=CP19?cp19Paths(CP19.codec):isPreview?{
  start:'./sounds/studio-gong-start.mp3',
  end:'./sounds/studio-gong-end.mp3',
  clack:'./sounds/woodclack-single.mp3',
@@ -100,6 +134,7 @@ let activeSounds=createActiveSoundController();
 const webRetirement=createWebAudioRetirement({
   getContext:()=>audioContext,
   reset:()=>{
+    cp19KeepAlive.stop();cp19Worklet.reset();
     audioContext=null;
     soundsLoading=null;
     for(const key of Object.keys(soundBuffers))delete soundBuffers[key];
@@ -144,7 +179,8 @@ const delayedStartGong=createDelayedStartGuard({
   canPlay: context=>!!context.sessionRef && session===context.sessionRef &&
     session.status==='running' && !document.hidden && !audioInterruption.interrupted &&
     audioContext?.state==='running' && !!soundBuffers.start &&
-    phaseNow().key===context.phaseKey && elapsedNow()<=3000,
+    phaseNow().key===context.phaseKey && elapsedNow()<=(CP19?150:3000) &&
+    (!CP19||CP19.transport!=='worklet'||cp19Worklet.ready),
   play: ()=>sound('start'),
 });
 function preloadSounds(){
@@ -163,7 +199,9 @@ function preloadSounds(){
      console.warn('Audio not available',name,err);
      void diagnosticSender.report({event:'audio_failure',code:'ASSET_LOAD_FAILED',component:'audio',version:DIAGNOSTICS_VERSION});
    }
- }));return soundsLoading;
+ })).then(()=>{
+  if(CP19&&(!soundBuffers.button||!soundBuffers.start)&&webRetirement.isCurrent(context,token))soundsLoading=null;
+ });return soundsLoading;
 }
 function sound(type){
  if(document.hidden||audioInterruption.interrupted)return false;
@@ -182,6 +220,10 @@ function sound(type){
    return false;
  }
  const offsets=isPreview&&type==='ten-double'?[0,.478]:type==='slow-double'?[0,.25]:type==='double'?[0,.155]:[0];
+ if(CP19?.transport==='worklet'){
+  if(!cp19Worklet.ready){void unlockAudio();return false;}
+  return cp19Worklet.play({name:kind,offsets,volume:kind==='button'?.1944:kind==='clack'?.96:.9,category:kind==='button'?'button':'cue'});
+ }
  let played=false;
  for(const offset of offsets){
    try{
@@ -201,6 +243,7 @@ function keepForegroundMix(){
 function stopActiveAudio({fadeMs=16,preserveButton=false,preserveMix=false}={}){
  delayedStartGong.invalidate();
  activeSounds.stopAll({fadeMs,includeButton:!preserveButton});
+ if(CP19?.transport==='worklet')cp19Worklet.stopAll();
  htmlSounds?.stopAll({includeButton:!preserveButton});
  if(!preserveMix)sessionMix.stop();
 }
@@ -214,6 +257,7 @@ const audioInterruption=createAudioInterruptionGuard({
    // Stop queued sounds, but retain the unlocked context and decoded buffers.
    // Creating a fresh context without a direct tap can fail on iPhone Safari.
    stopActiveAudio({fadeMs:web?0:reason==='blur'?12:0});
+   if(CP19?.keepalive)cp19KeepAlive.stop();
    if(web)webWasInterrupted=true;
    audioClockWatchdog.resetEpoch();
    ++audioRecoveryEpoch;
@@ -521,13 +565,13 @@ function buttonSound(){
  if(sound('button'))return true;
  // CP18 A/B only: try the original preloaded MP3 in this same gesture.
  // If that transport accepted the press, never add a delayed WebAudio echo.
- if(CP18_BUTTON_WINDOW_MS!==null&&htmlSounds?.playButton()){
+ if(!CP19&&CP18_BUTTON_WINDOW_MS!==null&&htmlSounds?.playButton()){
    void Promise.resolve(ready).catch(()=>{});
    return true;
  }
  const pressedAt=Date.now();
  // Normal TEST root retains the original <=180ms policy, A/B uses 0 or 30.
- const maxLateMs=CP18_BUTTON_WINDOW_MS===null?180:CP18_BUTTON_WINDOW_MS;
+ const maxLateMs=CP19?0:(CP18_BUTTON_WINDOW_MS===null?180:CP18_BUTTON_WINDOW_MS);
  if(maxLateMs>0){
    void Promise.resolve(ready).then(ok=>{
      const age=Date.now()-pressedAt;
@@ -546,7 +590,9 @@ function buttonSound(){
 function bindFastPress(target,action,{allowed=()=>true,suppress=()=>false}={}){
  let pressed=false;
  target?.addEventListener('pointerdown',event=>{
-   if(event.isPrimary===false||!allowed()||suppress())return;
+   if(event.isPrimary===false||!allowed())return;
+   if(CP19&&!CP19.prime)cp19Gesture();
+   if(suppress())return;
    pressed=buttonSound();
  });
  target?.addEventListener('pointercancel',()=>{pressed=false;});
@@ -602,7 +648,7 @@ window.addEventListener('pageshow',()=>{
   draw({notify:false}); // Never replay any skipped background gong/clacks.
   requestAnimationFrame(()=>fitClock(true));
 });
-window.addEventListener('pagehide',save);
+window.addEventListener('pagehide',()=>{save();if(CP19?.keepalive)cp19KeepAlive.stop();});
 updateInputs(config);restore();draw({notify:false});
 // Fetch and decode sounds without playing. Safari will resume on a real tap.
 if(isPreview&&audioMode==='web'&&(window.AudioContext||window.webkitAudioContext)){
