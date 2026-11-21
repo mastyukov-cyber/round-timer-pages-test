@@ -10,8 +10,8 @@ for(const path of ['index.html','test-f.html']){
   assert.ok(indexes.every(v=>v>0),indexes);
   assert.ok(indexes.every((v,i)=>!i||v>indexes[i-1]),indexes);
   assert.match(html,/id="soundToggle"[^>]+role="switch"[^>]+aria-label="Звук таймера"/);
-  assert.match(html,/data-sound="on">ON<\/button>/);
-  assert.match(html,/content="v0\.8\.20\.3/);
+  assert.match(html,/data-sound="on">ВКЛ<\/button>/);
+  assert.match(html,/content="v0\.8\.20\.4/);
  });
 }
 test('chosen glow toggle is green ON/red OFF with white knob, large wheels are grey',()=>{
@@ -35,12 +35,12 @@ test('mute controls all timer audio paths, persists ON/OFF, cancels delayed cues
  assert.match(app,/canPlay: context=>soundEnabled &&/);
  assert.match(app,/else if\(soundEnabled\)delayedStartGong\.schedule/);
  assert.match(app,/delayedStartGong\.invalidate\(\);\s*stopActiveAudio\(\{fadeMs:0,preserveMix:true\}\);\s*cp19KeepAlive\.stop\(\)/);
- assert.match(app,/if\(soundEnabled\)cp19Gesture\(\)/);
+ assert.match(app,/if\(soundEnabled\)\{\s*cp19Gesture\(\);/);
  assert.match(app,/event\?\.target\?\.closest\?\.\('#soundToggle'\)/);
  assert.doesNotMatch(app,/navigator\.mediaSession\.setPositionState\(/);
 });
 test('new PWA cache changes identity and includes versioned JS/CSS',()=>{
  const sw=read('sw.js');
- for(const file of ['./styles.css?v=08203','./app.mjs?v=08203','cp19-wheel-picker.mjs']) assert.ok(sw.includes(file),file);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.3-test-symmetric-edges/);
+ for(const file of ['./styles.css?v=08204','./app.mjs?v=08204','cp19-wheel-picker.mjs']) assert.ok(sw.includes(file),file);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.4-test-settings-sync/);
 });

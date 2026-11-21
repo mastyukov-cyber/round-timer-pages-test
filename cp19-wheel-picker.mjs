@@ -40,7 +40,7 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   wheel.append(center,scroll,minMarker,maxMarker);
   label.addEventListener('click',event=>{if(wheel.contains(event.target))event.preventDefault();});
   select.hidden=true;select.insertAdjacentElement('afterend',wheel);
-  const entry={select,wheel,scroll,minMarker,maxMarker,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0,settleTimer:null,touching:false,touchStartY:0,touchStartTop:0,touchDragged:false};
+  const entry={select,wheel,scroll,minMarker,maxMarker,index:Math.max(0,select.selectedIndex),lastSynced:NaN,lastRowHeight:NaN,busy:false,raf:0,settleTimer:null,touching:false,touchStartY:0,touchStartTop:0,touchDragged:false};
   entries.push(entry);
   function beginInlineInteraction(){
    if(select.disabled)return;
@@ -112,6 +112,8 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   }
   scroll.addEventListener('scroll',()=>{
    if(entry.busy||entry.raf||entry.touching)return;
+   // iOS changes row heights when rotated; never interpret pixel reflow as a choice.
+   if(Math.abs(rowHeight()-entry.lastRowHeight)>.5){refresh();return;}
    beginInlineInteraction();
    scheduleInlineCollapse(450);
    entry.raf=view?.requestAnimationFrame?.(()=>{
@@ -138,18 +140,40 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
    const idx=Math.max(0,select.selectedIndex);
    entry.minMarker.hidden=idx!==0;
    entry.maxMarker.hidden=idx!==select.options.length-1;
-   if(scroll.clientHeight===0){entry.lastSynced=NaN;continue;}
-   if(idx!==entry.lastSynced){entry.lastSynced=idx;entry.index=idx;
-    const h=parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;
+   if(scroll.clientHeight===0){entry.lastSynced=NaN;entry.lastRowHeight=NaN;entry.busy=false;continue;}
+   if(entry.touching)continue;
+   const h=parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;
+   if(idx!==entry.lastSynced||Math.abs(entry.lastRowHeight-h)>.5){
+    entry.lastSynced=idx;entry.lastRowHeight=h;entry.index=idx;
     // Initial/restored positioning must not trigger the interaction zoom.
     entry.busy=true;
     scroll.scrollTop=idx*h;
-    view?.requestAnimationFrame?.(()=>{entry.busy=false;});
+    view?.requestAnimationFrame?.(()=>{
+     // A second frame sees the new CSS row height after iOS orientation settles.
+     const nextHeight=parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;
+     scroll.scrollTop=idx*nextHeight;entry.lastRowHeight=nextHeight;
+     view?.requestAnimationFrame?.(()=>{entry.busy=false;});
+    });
     scroll.querySelectorAll('.cp19f-inline-option').forEach((row,i)=>{
      row.classList.toggle('is-current',i===idx);row.setAttribute('aria-selected',String(i===idx));
     });
    }
   }
+ }
+ // Reanchor all four wheels when CSS switches between portrait/landscape rows.
+ const reflow=()=>{
+  for(const entry of entries)entry.busy=true;
+  view?.requestAnimationFrame?.(()=>{
+   for(const entry of entries){entry.lastRowHeight=NaN;entry.lastSynced=NaN;}
+   refresh();
+  });
+ };
+ view?.addEventListener?.('orientationchange',reflow,{passive:true});
+ view?.addEventListener?.('resize',reflow,{passive:true});
+ view?.visualViewport?.addEventListener?.('resize',reflow,{passive:true});
+ if(view?.ResizeObserver){
+  const observer=new view.ResizeObserver(()=>refresh());
+  for(const entry of entries)observer.observe(entry.wheel);
  }
  refresh();return {refresh};
 }

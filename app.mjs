@@ -17,7 +17,7 @@ const CP19_MODE=(CP19_F_LAUNCH||CP19_F_ROOT_DEFAULT)?'wav-keepalive':cp19Mode(gl
 const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
 const CP19F_UX=CP19_MODE==='wav-keepalive';
 if(CP19F_UX)document.documentElement?.classList?.add?.('cp19f-ux');
-const CP19_VERSION=CP19F_UX?'0.8.20.3':'0.8.19.4';
+const CP19_VERSION=CP19F_UX?'0.8.20.4':'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
 const DIAGNOSTICS_VERSION=CP19?`${CP19_VERSION}-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({
@@ -45,6 +45,7 @@ if(AUDIO_QA_CONTROLS && isPreview){
 }
 
 const SOUND_KEY='round-timer-cp19f-sound-toggle-v1';
+const SETTINGS_KEY=CP19F_UX?'round-timer-cp19f-settings-v1':null;
 let soundEnabled=true;
 if(CP19F_UX){try{soundEnabled=localStorage.getItem(SOUND_KEY)!=='off';}catch(_){}}
 const cp19Haptics=CP19F_UX?createCP19Haptics({navigatorRef:navigator}):null;
@@ -77,7 +78,7 @@ for(const [element,choices] of [[el.work,WORK_CHOICES],[el.rest,REST_CHOICES],[e
 const cp19Wheel=CP19F_UX?createCP19WheelPicker({form:el.form,ids:['workInput','roundsInput','prepareInput','restInput'],feedback:cp19Haptics}):null;
 function renderSoundToggle(){
  if(!el.soundToggle)return;
- el.soundToggle.textContent=soundEnabled?'ON':'OFF';
+ el.soundToggle.textContent=soundEnabled?'ВКЛ':'ВЫКЛ';
  el.soundToggle.dataset.sound=soundEnabled?'on':'off';
  el.soundToggle.setAttribute('aria-checked',String(soundEnabled));
 }
@@ -96,7 +97,15 @@ el.soundToggle?.addEventListener('click',()=>{
  try{localStorage.setItem(SOUND_KEY,soundEnabled?'on':'off');}catch(_){}
  renderSoundToggle();
  // Apple Music is external and must never be paused or ducked by this control.
- if(soundEnabled)cp19Gesture();
+ if(soundEnabled){
+  cp19Gesture();
+  // The very first ON tap may occur before the WAV buffer has decoded.
+  // Use the already preloaded original button sample as a direct-gesture fallback.
+  // Never invoke an external music pause or change another app's volume.
+  if(audioMode==='web'&&!soundBuffers.button){
+   if(!htmlSounds?.playButton())buttonSound();
+  }else buttonSound();
+ }
 });
 let config=normalizeConfig({work:60}),session=null,lastPhase=null,lastCuePhase=null,audioContext=null,wakeLock=null,wasHidden=false;
 const cp19KeepAlive=createCP19KeepAlive();
@@ -120,7 +129,18 @@ function cp19Gesture(event){
 if(CP19?.prime)document.addEventListener('pointerdown',cp19Gesture,{capture:true});
 function readConfig(){return normalizeConfig({work:el.work.value,rest:el.rest.value,rounds:el.rounds.value,prepare:el.prepare.value});}
 function updateInputs(c){el.work.value=c.work;el.rest.value=c.rest;el.rounds.value=c.rounds;el.prepare.value=c.prepare;cp19Wheel?.refresh();}
-function save(){try{if(session)localStorage.setItem(STORAGE_KEY,JSON.stringify(session));else localStorage.removeItem(STORAGE_KEY);}catch(_){}}
+function restoreSavedSettings(){
+ if(!SETTINGS_KEY)return;
+ try{
+  const raw=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'null');
+  if(raw&&typeof raw==='object'&&!Array.isArray(raw))config=normalizeConfig(raw);
+ }catch(_){}
+}
+function save(){try{
+ if(SETTINGS_KEY)localStorage.setItem(SETTINGS_KEY,JSON.stringify(config));
+ if(session)localStorage.setItem(STORAGE_KEY,JSON.stringify(session));
+ else localStorage.removeItem(STORAGE_KEY);
+}catch(_){}}
 function restore(){try{
   const raw=JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');
   if(!raw||!['running','paused'].includes(raw.status)||!raw.config)return;
@@ -667,7 +687,7 @@ bindFastPress(el.reset,()=>reset(),{allowed:()=>!el.settings.open});
 el.form.addEventListener('input',event=>{if(event.target?.tagName==='SELECT')cp19Haptics?.picker();});
  el.form.addEventListener('change',event=>{
    if(event.target?.tagName==='SELECT')cp19Haptics?.picker();
-   if(!session){config=readConfig();draw({notify:false});}
+   if(!session){config=readConfig();save();draw({notify:false});}
  });
 el.settings.addEventListener('toggle',()=>{
  document.body.classList.toggle('settings-visible',el.settings.open);
@@ -707,7 +727,7 @@ window.addEventListener('pageshow',()=>{
   requestAnimationFrame(()=>fitClock(true));
 });
 window.addEventListener('pagehide',()=>{save();if(CP19?.keepalive)cp19KeepAlive.stop();});
-updateInputs(config);restore();draw({notify:false});
+restoreSavedSettings();updateInputs(config);restore();draw({notify:false});
 // Fetch and decode sounds without playing. Safari will resume on a real tap.
 if(soundEnabled&&isPreview&&audioMode==='web'&&(window.AudioContext||window.webkitAudioContext)){
  try{

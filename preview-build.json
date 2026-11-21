@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.3-symmetric-wheel-boundaries-test",
+  "version": "v0.8.20.4-symmetric-wheel-settings-sync-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -102,5 +102,15 @@
     "middle": "previous and next values remain visible",
     "touch": "unchanged from iPhone-verified v0.8.20.2",
     "deviceQA": "NOT_RUN"
+  },
+  "cp19f_unified_settings": {
+    "key": "round-timer-cp19f-settings-v1",
+    "fix": "persist idle config + re-anchor to select.selectedIndex when CSS wheel row height changes",
+    "physical_iPhone": "NOT_RUN"
+  },
+  "cp19f_localized_sound": {
+    "on": "ВКЛ (green); one button click sound",
+    "off": "ВЫКЛ (red); silent",
+    "first_on": "original button sample HTML fallback when WAV not yet decoded"
   }
 }
