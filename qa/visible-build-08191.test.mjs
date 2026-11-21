@@ -10,7 +10,7 @@ test('visible build identity is unique and never confused with previous 0.8.19',
 });
 test('offline worker increments cache identity while preserving offline strategy and app shell',()=>{
  const sw=get('sw.js');
- assert(sw.includes("round-timer-shell-v0.8.19.4-test-cp19-five"));
+ assert(sw.includes("round-timer-shell-v0.8.19.5-test-cp19-f"));
  assert(!sw.includes("const CACHE_NAME = 'round-timer-shell-v0.8.19-test-r478'"));
  assert(sw.includes("const local = await cache.match(event.request)"));
  assert(sw.includes("const offlinePage = await cache.match('./')"));

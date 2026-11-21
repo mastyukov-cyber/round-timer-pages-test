@@ -4,7 +4,8 @@ export const CP19_MODES=Object.freeze({
  'mp3-worklet':Object.freeze({label:'MP3 + AudioWorklet',codec:'mp3',transport:'worklet',prime:false,keepalive:false}),
  'wav-worklet':Object.freeze({label:'WAV + AudioWorklet',codec:'wav',transport:'worklet',prime:false,keepalive:false}),
  'mp3-prime':Object.freeze({label:'MP3 + Web Audio + first-gesture prime',codec:'mp3',transport:'web',prime:true,keepalive:false}),
- 'mp3-keepalive':Object.freeze({label:'MP3 + Web Audio + prime + keep-alive',codec:'mp3',transport:'web',prime:true,keepalive:true})
+ 'mp3-keepalive':Object.freeze({label:'MP3 + Web Audio + prime + keep-alive',codec:'mp3',transport:'web',prime:true,keepalive:true}),
+ 'wav-keepalive':Object.freeze({label:'WAV + Web Audio + prime + keep-alive',codec:'wav',transport:'web',prime:true,keepalive:true})
 });
 export function cp19Mode(search=''){
  const value=new URLSearchParams(String(search||'')).get('cp19');

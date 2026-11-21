@@ -7,8 +7,8 @@ import {CP19_MODES,cp19Mode,cp19Paths,cp19PrimeAudio} from '../cp19-audio-modes.
 import {createCP19KeepAlive} from '../cp19-keepalive.mjs';
 import {createCP19WorkletHost} from '../cp19-worklet-host.mjs';
 const read=(p)=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
-test('five exact CP19 modes; CP18 URLs still CP18',()=>{
- assert.deepEqual(Object.keys(CP19_MODES),['wav-web','mp3-worklet','wav-worklet','mp3-prime','mp3-keepalive']);
+test('six exact CP19 modes; CP18 URLs still CP18',()=>{
+ assert.deepEqual(Object.keys(CP19_MODES),['wav-web','mp3-worklet','wav-worklet','mp3-prime','mp3-keepalive','wav-keepalive']);
  for(const k of Object.keys(CP19_MODES))assert.equal(cp19Mode('?cp19='+k),k);
  for(const invalid of ['','?cp19=invalid','?cp18=0','?cp18=30','?cp19='])assert.equal(cp19Mode(invalid),null);
  assert.equal(cp19Mode('?cp18=0&cp19=mp3-prime'),'mp3-prime');
@@ -107,5 +107,5 @@ test('offline app shell includes all CP19 and CP18 modules and five WAV files',(
   ...['button','studio-gong-start','studio-gong-end','woodclack-single','woodclack-double'].map(x=>'sounds/cp19-wav/'+x+'.wav')]){
   assert.ok(sw.includes(m),'missing '+m);
  }
- assert.match(sw,/round-timer-shell-v0\.8\.19\.4-test-cp19-five/);
+ assert.match(sw,/round-timer-shell-v0\.8\.19\.5-test-cp19-f/);
 });

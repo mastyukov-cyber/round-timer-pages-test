@@ -10,8 +10,9 @@ import {createCP19KeepAlive} from './cp19-keepalive.mjs';
 import {createCP19WorkletHost} from './cp19-worklet-host.mjs';
 const CP19_MODE=cp19Mode(globalThis.location?.search||'');
 const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
+const CP19_VERSION=CP19_MODE==='wav-keepalive'?'0.8.19.5':'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
-const DIAGNOSTICS_VERSION=CP19?`0.8.19.4-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
+const DIAGNOSTICS_VERSION=CP19?`${CP19_VERSION}-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({
   endpoint:productionDiagnosticEndpoint(globalThis.location,'https://round-timer-error-receiver.mastyukov.workers.dev/v1/error')
 });
@@ -39,7 +40,7 @@ if(AUDIO_QA_CONTROLS && isPreview){
 const byId=id=>document.getElementById(id);
 if(CP19){
  const label=document.querySelector?.('.preview-version');
- if(label)label.textContent=`미하일 0.8.19.4 · TEST ${CP19.label}`;
+ if(label)label.textContent=`미하일 ${CP19_VERSION} · TEST ${CP19.label}`;
 }else if(CP18_BUTTON_WINDOW_MS!==null){
  const label=document.querySelector?.('.preview-version');
  if(label)label.textContent=`미하일 0.8.19.3 · TEST ${CP18_BUTTON_WINDOW_MS} мс`;
@@ -62,7 +63,7 @@ let cp19WorkletBusy=false;
 function cp19Status(message){
  if(!CP19)return;
  const el=document.querySelector?.('.preview-version');
- if(el)el.textContent=`미하일 0.8.19.4 · TEST ${CP19.label} · ${message}`;
+ if(el)el.textContent=`미하일 ${CP19_VERSION} · TEST ${CP19.label} · ${message}`;
 }
 function cp19Gesture(){
  if(!CP19||document.hidden)return;

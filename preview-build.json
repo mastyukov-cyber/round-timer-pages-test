@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.19.4-cp19-five-test",
+  "version": "v0.8.19.5-cp19-f-wav-keepalive-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -20,7 +20,7 @@
   ],
   "rollback_branch": "rollback/round-timer-cp18-test-v08192-20261116",
   "change": "CP18 isolated A/B: direct-gesture HTMLAudio fallback when WebAudio is not immediately ready, then at most 0ms vs 30ms deferred WebAudio window. 180ms baseline remains at normal TEST URL. 478ms clack, MP3 bytes, timer model unchanged.",
-  "note": "Five independent audio pilots CP19; Node22 synthetic QA 55/55 PASS, physical iOS QA pending; no GitHub Actions run.",
+  "note": "CP19-F WAV+Prime+KeepAlive isolated TEST candidate; E MP3 profile retained exactly; iPhone device QA pending; no Github Actions intentionally run.",
   "mac_required": false,
   "cp19_variants": [
     {
@@ -42,6 +42,12 @@
     {
       "name": "mp3-keepalive",
       "url": "https://mastyukov-cyber.github.io/round-timer-pages-test/?cp19=mp3-keepalive"
+    },
+    {
+      "name": "wav-keepalive",
+      "url": "https://mastyukov-cyber.github.io/round-timer-pages-test/?cp19=wav-keepalive",
+      "reference": "mp3-keepalive",
+      "difference": "audio file format only, WAV PCM16-48k-mono"
     }
   ],
   "rollback_cp19_test_sha": "d29b7b3035bf044ddc8acd0cb921dbd0453c244e",
