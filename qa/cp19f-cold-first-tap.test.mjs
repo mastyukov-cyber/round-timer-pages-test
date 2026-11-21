@@ -33,9 +33,9 @@ test('first cold press attempts HTML button synchronously, never queues another 
  const h=buttonHarness();
  assert.equal(h.context.buttonSound(),true);
  assert.equal(h.calls.filter(x=>x==='html-button').length,1);
- assert.equal(h.calls.filter(x=>x==='web-button').length,1);
+ assert.equal(h.calls.filter(x=>x==='web-button').length,0);
  await Promise.resolve();await Promise.resolve();
- assert.equal(h.calls.filter(x=>x==='web-button').length,1,'no deferred duplicate cue');
+ assert.equal(h.calls.filter(x=>x==='web-button').length,0,'no deferred duplicate cue');
  assert.equal(h.context.buttonCueEpoch,1);
 });
 test('warm second press uses Web Audio only, with no HTML duplicate',()=>{

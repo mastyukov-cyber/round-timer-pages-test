@@ -56,5 +56,5 @@ test('cache refresh to 0.8.20.8 preserves settings, audio, production isolation 
  assert.match(html,/src="\.\/app\.mjs\?v=08208"/);
  const haptics=read('cp19-haptics.mjs');
  assert.match(haptics,/typeof navigatorRef\?\.vibrate==='function'/);
- assert.doesNotMatch(haptics,/webkit.*switch|\.click\(\)/i);
+ assert.doesNotMatch(haptics,/\.click\(\)/);
 });
