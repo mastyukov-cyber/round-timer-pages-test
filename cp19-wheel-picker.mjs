@@ -1,8 +1,10 @@
 /** CP19-F inline scroll wheels. The existing native <select> remains the only data source. */
+export const CP19_TOUCH_GAIN=1.2;
 export const wheelIndex=(offset,row,count)=>Math.max(0,Math.min(count-1,Math.round(Math.max(0,offset)/row)));
 export function wheelLabel(select,option){
  if(!option)return '—';
- if(select.id==='roundsInput'||option.value==='infinity')return option.textContent;
+ if(option.value==='infinity')return '∞';
+ if(select.id==='roundsInput')return option.textContent;
  const secs=Number(option.value);
  if(!Number.isFinite(secs))return option.textContent;
  return `${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
@@ -22,7 +24,7 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   scroll.setAttribute('aria-label',(label.childNodes[0]?.textContent?.trim()||'Выбор')+' — прокрутка значений');
   const fragment=doc.createDocumentFragment();
   for(let i=0;i<select.options.length;i++){
-   const row=doc.createElement('div');row.className='cp19f-inline-option';
+   const row=doc.createElement('div');row.className='cp19f-inline-option'+(select.options[i].value==='infinity'?' is-infinity':'');
    row.setAttribute('role','option');row.dataset.index=String(i);
    row.textContent=wheelLabel(select,select.options[i]);
    row.addEventListener('click',()=>choose(i,true));
@@ -70,7 +72,7 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
    if(Math.abs(delta)>4){entry.touchDragged=true;beginInlineInteraction();}
    if(!entry.touchDragged)return;
    if(event.cancelable)event.preventDefault();
-   scroll.scrollTop=Math.max(0,Math.min(scroll.scrollHeight-scroll.clientHeight,entry.touchStartTop+delta));
+   scroll.scrollTop=Math.max(0,Math.min(scroll.scrollHeight-scroll.clientHeight,entry.touchStartTop+delta*CP19_TOUCH_GAIN));
    entry.index=wheelIndex(scroll.scrollTop,rowHeight(),select.options.length);
    highlight();
   },{passive:false});
