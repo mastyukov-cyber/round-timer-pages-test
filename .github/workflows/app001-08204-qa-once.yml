@@ -16,13 +16,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-          fetch-depth: 2
+          ref: e632c25607441777620e0355e7ce4e4c3f2aa4c8
+          fetch-depth: 1
       - name: Keep candidate source pinned
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD^)" = "e632c25607441777620e0355e7ce4e4c3f2aa4c8"
+          test "$(git rev-parse HEAD)" = "e632c25607441777620e0355e7ce4e4c3f2aa4c8"
           test "${GITHUB_REPOSITORY}" = "mastyukov-cyber/round-timer-pages-test"
-          git diff-tree --no-commit-id --name-only -r HEAD | grep -Fx ".github/workflows/app001-08204-qa-once.yml"
       - name: Prepare Node 26
         uses: actions/setup-node@v4
         with:
