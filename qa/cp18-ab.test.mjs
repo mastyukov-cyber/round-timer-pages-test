@@ -49,7 +49,7 @@ test('CP18 branch uses original MP3 directly on gesture before late promise',asy
 });
 test('offline TEST updates to unique CP18 cache and preloads policy without touching audio files',()=>{
  const sw=src('sw.js');
- assert(sw.includes("round-timer-shell-v0.8.20.5-test-settings-sync"));
+ assert(sw.includes("round-timer-shell-v0.8.20.6-test-settings-sync"));
  assert(sw.includes("'./cp18-audio-window.mjs'"));
  assert(sw.includes("const local = await cache.match(event.request)"));
  assert(sw.includes("const root = await cache.match('./')"));

@@ -21,5 +21,5 @@ test('previous selected option remains authoritative and changes without confirm
  assert.match(js,/select\.value=select\.options\[n\]\.value/);
  assert.match(js,/select\.dispatchEvent\(new Event\('change'/);
  assert.doesNotMatch(js,/✓ ВЫБРАТЬ/);
- assert.match(read('preview-build.json'),/v0\.8\.20\.5-wheel-optics-test/);
+ assert.match(read('preview-build.json'),/v0\.8\.20\.6-wheel-optics-test/);
 });

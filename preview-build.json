@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.5-wheel-optics-test",
+  "version": "v0.8.20.6-selected-wheel-landscape-round-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -120,5 +120,14 @@
     "settings_storage_key": "unchanged",
     "preserve_audio_assets": true,
     "physical_iphone": "NOT_RUN"
+  },
+  "cp19f_selected_wheel_landscape_round": {
+    "selected_value_magnification": 1.5,
+    "landscape_round_word_factor": 2,
+    "landscape_round_count_factor": 2,
+    "landscape_move_down_px": "5-9",
+    "short_landscape_safety_max_height_px": 350,
+    "settings_storage_key": "unchanged",
+    "ios_device_qa": "NOT_RUN"
   }
 }
