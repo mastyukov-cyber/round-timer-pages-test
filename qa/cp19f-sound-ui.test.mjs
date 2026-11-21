@@ -33,7 +33,7 @@ test('mute controls all timer audio paths, persists ON/OFF, cancels delayed cues
  assert.match(app,/function sound\(type\)\{\s*if\(!soundEnabled\|\|document\.hidden/);
  assert.match(app,/function buttonSound\(\)\{\s*if\(!soundEnabled\|\|!isPreview/);
  assert.match(app,/canPlay: context=>soundEnabled &&/);
- assert.match(app,/else if\(soundEnabled\)delayedStartGong\.schedule/);
+ assert.match(app,/else if\(soundEnabled && !cp19DirectGestureFallback\('start'\)\)\s*delayedStartGong\.schedule/);
  assert.match(app,/delayedStartGong\.invalidate\(\);\s*stopActiveAudio\(\{fadeMs:0,preserveMix:true\}\);\s*cp19KeepAlive\.stop\(\)/);
  assert.match(app,/if\(soundEnabled\)\{\s*cp19Gesture\(\);/);
  assert.match(app,/event\?\.target\?\.closest\?\.\('#soundToggle'\)/);
