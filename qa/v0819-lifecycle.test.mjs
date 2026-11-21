@@ -74,7 +74,8 @@ async function simulate(label,run,{delayInitialResume=false}={}){
  try{
   Date.now=()=>now;
   set('window',win);set('document',doc);set('navigator',{});
-  set('location',{origin:'https://mastyukov.github.io',pathname:'/round-timer/'});
+  // Exercise the historical MP3 baseline explicitly; TEST root now intentionally defaults to F WAV.
+  set('location',{origin:'https://mastyukov.github.io',pathname:'/round-timer/',search:'?cp19=baseline'});
   set('localStorage',{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),
    removeItem:k=>storage.delete(k)});
   set('fetch',async path=>({ok:true,arrayBuffer:async()=>path}));
@@ -183,9 +184,9 @@ test('478ms HTML fallback at ten seconds, stable UI and fresh offline cache',()=
  const app=appSource(),htmlPage=source('index.html'),sw=source('sw.js');
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
  assert(app.includes("type==='ten-double'?[0,.478]"));
- assert(htmlPage.includes('미하일 0.8.19.2'));
+ assert(htmlPage.includes('미하일 0.8.19.8'));
  assert(htmlPage.includes('id="audioRecoveryButton"'));
- assert(sw.includes("round-timer-shell-v0.8.19.7-test-cp19f-launch"));
+ assert(sw.includes("round-timer-shell-v0.8.19.8-test-cp19f-root-cachefix"));
  assert(!htmlPage.includes('ТЕСТОВАЯ ВЕРСИЯ'));
 });
 

@@ -1,6 +1,6 @@
 {
-  "name": "Раунд таймер",
-  "short_name": "Раунд таймер",
+  "name": "Таймер F TEST",
+  "short_name": "Таймер F TEST",
   "description": "Интервальный таймер для спортивного зала. Работает без интернета.",
   "lang": "ru",
   "start_url": "./",
@@ -22,5 +22,6 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "id": "./"
 }

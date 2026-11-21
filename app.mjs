@@ -10,11 +10,12 @@ import {createCP19KeepAlive} from './cp19-keepalive.mjs';
 import {createCP19WorkletHost} from './cp19-worklet-host.mjs';
 import {createCP19Haptics} from './cp19-haptics.mjs';
 const CP19_F_LAUNCH=(globalThis.location?.pathname||'').endsWith('/test-f.html');
-const CP19_MODE=CP19_F_LAUNCH?'wav-keepalive':cp19Mode(globalThis.location?.search||'');
+const CP19_F_ROOT_DEFAULT=/(?:\/|\/index\.html)$/.test(globalThis.location?.pathname||'') && !new URLSearchParams(globalThis.location?.search||'').has('cp18') && !new URLSearchParams(globalThis.location?.search||'').has('cp19');
+const CP19_MODE=(CP19_F_LAUNCH||CP19_F_ROOT_DEFAULT)?'wav-keepalive':cp19Mode(globalThis.location?.search||'');
 const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
 const CP19F_UX=CP19_MODE==='wav-keepalive';
-if(CP19F_UX)document.documentElement.classList.add('cp19f-ux');
-const CP19_VERSION=CP19F_UX?'0.8.19.7':'0.8.19.4';
+if(CP19F_UX)document.documentElement?.classList?.add?.('cp19f-ux');
+const CP19_VERSION=CP19F_UX?'0.8.19.8':'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
 const DIAGNOSTICS_VERSION=CP19?`${CP19_VERSION}-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({

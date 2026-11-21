@@ -40,6 +40,6 @@ test('select keeps native wheel, UX haptic only for F, no duplicate click audio'
 test('offline shell precaches new haptic module, keeps approved WAV assets',()=>{
  const sw=read('sw.js');
  assert.match(sw,/cp19-haptics\.mjs/);
- assert.match(sw,/round-timer-shell-v0\.8\.19\.7-test-cp19f-launch/);
+ assert.match(sw,/round-timer-shell-v0\.8\.19\.8-test-cp19f-root-cachefix/);
  for(const sound of ['button','studio-gong-start','studio-gong-end','woodclack-single','woodclack-double'])assert.ok(sw.includes('sounds/cp19-wav/'+sound+'.wav'));
 });

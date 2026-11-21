@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.19.7-cp19-f-homescreen-test",
+  "version": "v0.8.19.8-cp19-f-root-cachefix-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -20,7 +20,7 @@
   ],
   "rollback_branch": "rollback/round-timer-cp18-test-v08192-20261116",
   "change": "CP18 isolated A/B: direct-gesture HTMLAudio fallback when WebAudio is not immediately ready, then at most 0ms vs 30ms deferred WebAudio window. 180ms baseline remains at normal TEST URL. 478ms clack, MP3 bytes, timer model unchanged.",
-  "note": "CP19-F dedicated home-screen install page. No ?cp19 query needed; root and E unaffected. Device QA pending.",
+  "note": "CP19-F iPhone Home Screen cache fix: F default on existing TEST root, network-first exact-page offline fallback. No new repository. Device verification pending.",
   "mac_required": false,
   "cp19_variants": [
     {
@@ -64,6 +64,10 @@
     "install_url": "https://mastyukov-cyber.github.io/round-timer-pages-test/test-f.html",
     "manifest": "./manifest-cp19f.webmanifest",
     "start_url": "./test-f.html",
-    "mode": "wav-keepalive"
-  }
+    "mode": "wav-keepalive",
+    "root_default_mode": "wav-keepalive",
+    "navigation_cache": "network-first-exact-offline"
+  },
+  "root_mode": "wav-keepalive",
+  "distribution_target": "existing TEST repo mastyukov-cyber/round-timer-pages-test only"
 }

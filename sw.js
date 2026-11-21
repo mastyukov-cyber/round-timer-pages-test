@@ -1,6 +1,6 @@
 // Offline-first service worker v0.8.19.3 CP18 A/B TEST. Avoid waiting for a blocked/throttled CDN.
 // App shell and audio must be served from local CacheStorage after first install.
-const CACHE_NAME = 'round-timer-shell-v0.8.19.7-test-cp19f-launch';
+const CACHE_NAME = 'round-timer-shell-v0.8.19.8-test-cp19f-root-cachefix';
 const SHELL = [
   './', './index.html', './test-f.html', './manifest-cp19f.webmanifest', './styles.css', './app.mjs', './engine.mjs',
   './cp18-audio-window.mjs', './cp19-audio-modes.mjs', './cp19-haptics.mjs', './cp19-keepalive.mjs', './cp19-audio-worklet.mjs', './cp19-worklet-host.mjs', './diagnostics/sender.mjs', './diagnostics/schema.mjs', './audio-clock-watchdog.mjs', './audio-guard.mjs', './html-audio.mjs', './web-audio-retire.mjs', './audio-duck.mjs',
@@ -32,17 +32,31 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
-  // Cache first even when navigator.onLine is true but the connection is stalled.
-  // Never wait for the host for previously installed resources.
+  // Navigations are network-first to avoid an old root page masquerading as /test-f.html.
+  // Audio/modules remain cache-first for reliable offline sports timing.
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
+    if (event.request.mode === 'navigate') {
+      try {
+        const fresh = await fetch(event.request, {cache:'no-store'});
+        if (fresh.ok) {
+          try { await cache.put(event.request, fresh.clone()); } catch (_) {}
+          return fresh;
+        }
+      } catch (_) {}
+      const exact = await cache.match(event.request, {ignoreSearch:true});
+      if (exact) return exact;
+      // Only a genuine root URL may use the root offline fallback.
+      if (/\/(?:index\.html)?$/.test(url.pathname)) {
+        const root = await cache.match('./');
+        if (root) return root;
+      }
+      return new Response('Эта тестовая страница пока недоступна офлайн', {
+        status:503, headers:{'Content-Type':'text/plain; charset=utf-8'}
+      });
+    }
     const local = await cache.match(event.request);
     if (local) return local;
-    // Offline navigation fallback, including URLs with tracking query parameters.
-    if (event.request.mode === 'navigate') {
-      const offlinePage = await cache.match('./');
-      if (offlinePage) return offlinePage;
-    }
     try {
       const response = await fetch(event.request);
       if (response.ok) await cache.put(event.request, response.clone());
