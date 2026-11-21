@@ -28,10 +28,19 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
    row.addEventListener('click',()=>choose(i,true));
    fragment.append(row);
   }
-  scroll.append(fragment);wheel.append(center,scroll);
+  scroll.append(fragment);
+  // Non-interactive boundary markers balance empty outer rows at minimum/maximum.
+  // They are outside the scrolling element, so they cannot affect touch or scrollTop.
+  const minMarker=doc.createElement('div');
+  minMarker.className='cp19f-inline-limit cp19f-inline-limit-top';
+  minMarker.textContent='—';minMarker.setAttribute('aria-hidden','true');
+  const maxMarker=doc.createElement('div');
+  maxMarker.className='cp19f-inline-limit cp19f-inline-limit-bottom';
+  maxMarker.textContent='—';maxMarker.setAttribute('aria-hidden','true');
+  wheel.append(center,scroll,minMarker,maxMarker);
   label.addEventListener('click',event=>{if(wheel.contains(event.target))event.preventDefault();});
   select.hidden=true;select.insertAdjacentElement('afterend',wheel);
-  const entry={select,wheel,scroll,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0,settleTimer:null,touching:false,touchStartY:0,touchStartTop:0,touchDragged:false};
+  const entry={select,wheel,scroll,minMarker,maxMarker,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0,settleTimer:null,touching:false,touchStartY:0,touchStartTop:0,touchDragged:false};
   entries.push(entry);
   function beginInlineInteraction(){
    if(select.disabled)return;
@@ -84,7 +93,10 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   function rowHeight(){return parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;}
   function highlight(){scroll.querySelectorAll('.cp19f-inline-option').forEach((row,i)=>{
    const chosen=i===entry.index;row.classList.toggle('is-current',chosen);row.setAttribute('aria-selected',String(chosen));
-  });}
+  });
+   minMarker.hidden=entry.index!==0;
+   maxMarker.hidden=entry.index!==select.options.length-1;
+  }
   function choose(i,scrollTo=false){
    if(select.disabled)return;
    const n=Math.max(0,Math.min(select.options.length-1,i));
@@ -124,6 +136,8 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
    }
    scroll.setAttribute('aria-disabled',String(select.disabled));
    const idx=Math.max(0,select.selectedIndex);
+   entry.minMarker.hidden=idx!==0;
+   entry.maxMarker.hidden=idx!==select.options.length-1;
    if(scroll.clientHeight===0){entry.lastSynced=NaN;continue;}
    if(idx!==entry.lastSynced){entry.lastSynced=idx;entry.index=idx;
     const h=parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;

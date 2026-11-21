@@ -46,5 +46,5 @@ test('service worker caches new UI modules for offline PWA and retains approved 
   assert.ok(sw.includes(x),x);
   assert.ok(existsSync(new URL('../'+x,import.meta.url)),x);
  }
- assert.match(sw,/round-timer-shell-v0\.8\.20\.2-test-safari-wheel-touch/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.3-test-symmetric-edges/);
 });

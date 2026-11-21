@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.2-safari-wheel-touch-test",
+  "version": "v0.8.20.3-symmetric-wheel-boundaries-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -95,5 +95,12 @@
     "touch": "explicit touchstart/move/end with passive:false touchmove",
     "safety": "no transformed parent scroll area, commit select on touchend, tap fallback",
     "device_acceptance": "NOT_RUN"
+  },
+  "cp19f_wheel_symmetry": {
+    "minimum": "disabled em dash above first value",
+    "maximum": "disabled em dash below last value",
+    "middle": "previous and next values remain visible",
+    "touch": "unchanged from iPhone-verified v0.8.20.2",
+    "deviceQA": "NOT_RUN"
   }
 }

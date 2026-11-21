@@ -42,6 +42,6 @@ test('native selects remain authoritative and F gets a custom large wheel',()=>{
 test('offline shell precaches new haptic module, keeps approved WAV assets',()=>{
  const sw=read('sw.js');
  assert.match(sw,/cp19-haptics\.mjs/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.2-test-safari-wheel-touch/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.3-test-symmetric-edges/);
  for(const sound of ['button','studio-gong-start','studio-gong-end','woodclack-single','woodclack-double'])assert.ok(sw.includes('sounds/cp19-wav/'+sound+'.wav'));
 });

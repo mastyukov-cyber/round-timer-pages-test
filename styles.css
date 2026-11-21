@@ -287,3 +287,15 @@ main { flex:1;min-height:0;display:flex;flex-direction:column; gap:clamp(8px,1.3
 .cp19f-ux .cp19f-inline-option{cursor:pointer;}
 .cp19f-ux .cp19f-inline-wheel.is-engaged:not(.is-disabled) .cp19f-inline-center{transform:translateY(-50%) scale(1.055);}
 @media (orientation:landscape){.cp19f-ux .cp19f-inline-wheel.is-engaged:not(.is-disabled) .cp19f-inline-center{transform:translateY(-50%) scale(1.04);}}
+
+/* CP19-F 0.8.20.3: visually balanced picker boundaries without wrapping values. */
+.cp19f-inline-limit[hidden]{display:none!important;}
+.cp19f-inline-limit{
+ position:absolute;z-index:3;left:0;right:0;height:var(--wheel-row);
+ display:flex;justify-content:center;align-items:center;pointer-events:none;
+ font-size:clamp(1.12rem,4.6vw,1.42rem);font-weight:850;
+ color:#404650;opacity:.63;user-select:none;
+}
+.cp19f-inline-limit-top{top:0;}
+.cp19f-inline-limit-bottom{bottom:0;}
+@media (orientation:landscape){.cp19f-inline-limit{font-size:1.06rem;}}
