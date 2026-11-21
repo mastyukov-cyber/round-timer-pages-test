@@ -17,7 +17,7 @@ const CP19_MODE=(CP19_F_LAUNCH||CP19_F_ROOT_DEFAULT)?'wav-keepalive':cp19Mode(gl
 const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
 const CP19F_UX=CP19_MODE==='wav-keepalive';
 if(CP19F_UX)document.documentElement?.classList?.add?.('cp19f-ux');
-const CP19_VERSION=CP19F_UX?'0.8.20.7':'0.8.19.4';
+const CP19_VERSION=CP19F_UX?'0.8.20.8':'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
 const DIAGNOSTICS_VERSION=CP19?`${CP19_VERSION}-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({
@@ -253,7 +253,10 @@ const delayedStartGong=createDelayedStartGuard({
 function preloadSounds(){
  if(soundsLoading||!audioContext)return soundsLoading;
  const context=audioContext,token=webRetirement.generation;
- soundsLoading=Promise.all(Object.entries(SOUND_PATHS).map(async([name,url])=>{
+ // Fetch/decode the short button sample first on cold launch.
+ const soundEntries=Object.entries(SOUND_PATHS);
+ if(CP19)soundEntries.sort(([a],[b])=>Number(b==='button')-Number(a==='button'));
+ soundsLoading=Promise.all(soundEntries.map(async([name,url])=>{
    try{
      const resp=await fetch(url);
      if(!resp.ok)throw new Error('audio fetch failed');
@@ -642,7 +645,14 @@ function buttonSound(){
    sessionMix.begin();
    return htmlSounds.playButton();
  }
- // Resume in the direct pointer gesture, using previously decoded assets.
+ // Try the preloaded HTML button audio before new WebAudio work on a cold gesture.
+ // Do not schedule a delayed WebAudio echo after the HTML attempt.
+ if(CP19&&(!audioContext||audioContext.state!=='running'||!soundBuffers.button)){
+  const accepted=cp19DirectGestureFallback('button');
+  void Promise.resolve(unlockAudio()).catch(()=>{});
+  return accepted;
+ }
+ // Warm path uses the existing decoded Web Audio sample.
  const ready=(!audioContext||audioContext.state!=='running'||!soundBuffers.button)
    ?unlockAudio():Promise.resolve(true);
  if(sound('button'))return true;

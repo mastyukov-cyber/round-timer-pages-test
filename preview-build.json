@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.7-cold-first-tap-html-fallback-test",
+  "version": "v0.8.20.8-compact-wheels-cold-audio-priority-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -138,6 +138,21 @@
     "avoid_double": "no delayed duplicate for successful HTML fallback",
     "start_preserve_button": true,
     "physical_device_qa": "NOT_RUN",
+    "production": false
+  },
+  "cp19f_compact_wheels_cold_priority": {
+    "portrait_row_px_before": 52,
+    "portrait_row_px_after": 46,
+    "landscape_row_px_before": 40,
+    "landscape_row_px_after": 36,
+    "short_landscape_row_px_before": 28,
+    "short_landscape_row_px_after": 26,
+    "wheel_width_percent": 96,
+    "selected_glyph_center_preserved": true,
+    "first_button_audio": "HTML fallback attempted before cold WebAudio preparation",
+    "audio_load_priority": "button sample first",
+    "real_iphone_latency": "NOT_MEASURED",
+    "real_iphone_qa": "NOT_RUN",
     "production": false
   }
 }
