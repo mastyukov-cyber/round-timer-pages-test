@@ -28,15 +28,17 @@ test('wheel scrolling clamps finite choices without skipping invalid values',()=
  assert.equal(wheelIndex(999999,64,12),11);
  assert.equal(wheelIndex(-100,64,12),0);
 });
-test('large wheel uses scroll snap and preserves original select options and change events',()=>{
+test('four inline scroll wheels preserve native select and update timer on scroll or arrows',()=>{
  const source=read('cp19-wheel-picker.mjs'),css=read('styles.css'),app=read('app.mjs');
- assert.match(source,/scroll-snap/ig.test(css)?/select\.dispatchEvent\(new Event\('change'/ : /NEVER/);
- assert.match(source,/select\.value=value/);
- assert.match(source,/option\.textContent=select\.options\[i\]\.textContent/);
- assert.match(source,/overlay\.hidden=true/);
- assert.match(source,/ev\.key==='Escape'/);
+ assert.match(source,/scroll\.addEventListener\('scroll'/);
+ assert.match(source,/scroll\.addEventListener\('keydown'/);
+ assert.match(source,/select\.value=select\.options\[n\]\.value/);
+ assert.match(source,/select\.dispatchEvent\(new Event\('change'/);
+ assert.match(source,/scroll\.scrollTop=idx\*h/);
+ assert.match(css,/\.cp19f-inline-wheel\{/);
+ assert.match(css,/scroll-snap-type:y mandatory/);
+ assert.match(css,/\.cp19f-inline-center\{/);
  assert.match(app,/if\(CP19F_UX\)document\.addEventListener\('pointerdown'/);
- assert.match(css,/@media \(prefers-reduced-motion:reduce\)/);
 });
 test('service worker caches new UI modules for offline PWA and retains approved WAVs',()=>{
  const sw=read('sw.js');
@@ -44,5 +46,5 @@ test('service worker caches new UI modules for offline PWA and retains approved 
   assert.ok(sw.includes(x),x);
   assert.ok(existsSync(new URL('../'+x,import.meta.url)),x);
  }
- assert.match(sw,/round-timer-shell-v0\.8\.19\.9-test-cp19f-ui-wheels/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.0-test-cp19f-sound-layout/);
 });

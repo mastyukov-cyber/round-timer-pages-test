@@ -17,7 +17,7 @@ const CP19_MODE=(CP19_F_LAUNCH||CP19_F_ROOT_DEFAULT)?'wav-keepalive':cp19Mode(gl
 const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
 const CP19F_UX=CP19_MODE==='wav-keepalive';
 if(CP19F_UX)document.documentElement?.classList?.add?.('cp19f-ux');
-const CP19_VERSION=CP19F_UX?'0.8.19.9':'0.8.19.4';
+const CP19_VERSION=CP19F_UX?'0.8.20.0':'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
 const DIAGNOSTICS_VERSION=CP19?`${CP19_VERSION}-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({
@@ -44,6 +44,9 @@ if(AUDIO_QA_CONTROLS && isPreview){
   try{musicMixEnabled=localStorage.getItem(PREVIEW_MUSIC_KEY)!=='off';}catch(_){musicMixEnabled=true;}
 }
 
+const SOUND_KEY='round-timer-cp19f-sound-toggle-v1';
+let soundEnabled=true;
+if(CP19F_UX){try{soundEnabled=localStorage.getItem(SOUND_KEY)!=='off';}catch(_){}}
 const cp19Haptics=CP19F_UX?createCP19Haptics({navigatorRef:navigator}):null;
 if(CP19F_UX)document.addEventListener('pointerdown',event=>{
  const target=event.target?.closest?.('button,summary');
@@ -60,7 +63,7 @@ if(CP19){
  const label=document.querySelector?.('.preview-version');
  if(label)label.textContent=`미하일 0.8.19.3 · TEST ${CP18_BUTTON_WINDOW_MS} мс`;
 }
-const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),roundCurrent:byId('roundCurrent'),roundTotal:byId('roundTotal'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),audioRecover:byId('audioRecoveryButton'),form:byId('settingsForm')};
+const el={work:byId('workInput'),rest:byId('restInput'),rounds:byId('roundsInput'),prepare:byId('prepareInput'),clock:byId('clock'),round:byId('roundLabel'),roundCount:byId('roundCount'),roundCurrent:byId('roundCurrent'),roundTotal:byId('roundTotal'),phase:byId('phaseLabel'),progress:byId('progressBar'),start:byId('startPauseButton'),reset:byId('resetButton'),settings:byId('settings'),closeSettings:byId('closeSettingsButton'),audioRecover:byId('audioRecoveryButton'),form:byId('settingsForm'),soundControl:byId('soundControl'),soundToggle:byId('soundToggle')};
 function durationLabel(sec) {
   if(sec===0) return '0 секунд';
   const min=Math.floor(sec/60), remainder=sec%60;
@@ -71,7 +74,30 @@ function durationLabel(sec) {
 for(const [element,choices] of [[el.work,WORK_CHOICES],[el.rest,REST_CHOICES],[el.rounds,ROUND_CHOICES],[el.prepare,PREPARE_CHOICES]]) {
   for(const c of choices) {const option=document.createElement('option');option.value=String(c);option.textContent=c==='infinity'?'∞ Бесконечно':element===el.rounds?String(c):durationLabel(c);element.append(option);}
 }
-const cp19Wheel=CP19F_UX?createCP19WheelPicker({form:el.form,ids:['workInput','restInput','roundsInput','prepareInput'],feedback:cp19Haptics}):null;
+const cp19Wheel=CP19F_UX?createCP19WheelPicker({form:el.form,ids:['workInput','roundsInput','prepareInput','restInput'],feedback:cp19Haptics}):null;
+function renderSoundToggle(){
+ if(!el.soundToggle)return;
+ el.soundToggle.textContent=soundEnabled?'ON':'OFF';
+ el.soundToggle.dataset.sound=soundEnabled?'on':'off';
+ el.soundToggle.setAttribute('aria-checked',String(soundEnabled));
+}
+if(el.soundControl)el.soundControl.hidden=!CP19F_UX;
+renderSoundToggle();
+el.soundToggle?.addEventListener('click',()=>{
+ if(!CP19F_UX)return;
+ const next=!soundEnabled;
+ if(!next){
+  ++buttonCueEpoch;
+  delayedStartGong.invalidate();
+  stopActiveAudio({fadeMs:0,preserveMix:true});
+  cp19KeepAlive.stop();
+ }
+ soundEnabled=next;
+ try{localStorage.setItem(SOUND_KEY,soundEnabled?'on':'off');}catch(_){}
+ renderSoundToggle();
+ // Apple Music is external and must never be paused or ducked by this control.
+ if(soundEnabled)cp19Gesture();
+});
 let config=normalizeConfig({work:60}),session=null,lastPhase=null,lastCuePhase=null,audioContext=null,wakeLock=null,wasHidden=false;
 const cp19KeepAlive=createCP19KeepAlive();
 const cp19Worklet=createCP19WorkletHost();
@@ -81,8 +107,8 @@ function cp19Status(message){
  const el=document.querySelector?.('.preview-version');
  if(el)el.textContent=`미하일 ${CP19_VERSION} · TEST ${CP19.label} · ${message}`;
 }
-function cp19Gesture(){
- if(!CP19||document.hidden)return;
+function cp19Gesture(event){
+ if(!CP19||document.hidden||!soundEnabled||event?.target?.closest?.('#soundToggle'))return;
  audioGestureSeen=true;
  try{
   if(audioContext?.state==='closed')webRetirement.retire();
@@ -110,7 +136,8 @@ function phaseNow(){return computePhase(config,elapsedNow());}
 // Return readiness: an immediate zero-preparation START can then queue its gong
 // until Safari enables Web Audio and decodes the original recording.
 function unlockAudio(){
- if(audioMode==='html')return Promise.resolve(false);
+ if(!soundEnabled)return Promise.resolve(false);
+  if(audioMode==='html')return Promise.resolve(false);
  try{
    if(audioContext?.state==='closed')webRetirement.retire();
    audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
@@ -196,7 +223,7 @@ if(isPreview && !htmlSounds)audioMode='web';
 if(cueLatencyLabel)cueLatencyLabel.hidden=audioMode!=='html';
 
 const delayedStartGong=createDelayedStartGuard({
-  canPlay: context=>!!context.sessionRef && session===context.sessionRef &&
+  canPlay: context=>soundEnabled && !!context.sessionRef && session===context.sessionRef &&
     session.status==='running' && !document.hidden && !audioInterruption.interrupted &&
     audioContext?.state==='running' && !!soundBuffers.start &&
     phaseNow().key===context.phaseKey && elapsedNow()<=(CP19?150:3000) &&
@@ -224,7 +251,7 @@ function preloadSounds(){
  });return soundsLoading;
 }
 function sound(type){
- if(document.hidden||audioInterruption.interrupted)return false;
+ if(!soundEnabled||document.hidden||audioInterruption.interrupted)return false;
  if(audioMode==='html'&&htmlSounds){
    sessionMix.begin();
    return htmlSounds.play(type);
@@ -453,7 +480,7 @@ function fitLabels(){
  if(el.roundCount){
   const st=getComputedStyle(el.round);
   // Use a compact landscape round heading so the clock receives maximal height.
-   let base=portrait?window.innerWidth*.068:window.innerHeight*.037;
+   let base=portrait?window.innerWidth*(CP19F_UX?.058:.068):window.innerHeight*(CP19F_UX?.034:.037);
   base=Math.max(12,Math.min(base,32));
   ctx.font=`900 ${base}px ${st.fontFamily}`;
   const wordWidth=ctx.measureText('РАУНД').width;
@@ -467,7 +494,7 @@ function fitLabels(){
  }
  for(const label of [el.phase]){
   const st=getComputedStyle(label),root=parseFloat(getComputedStyle(document.documentElement).fontSize)||16;
-  const ideal=portrait?window.innerWidth*(isPreview?.081:.073):window.innerHeight*(isPreview?.057:.05);
+  const ideal=portrait?window.innerWidth*(CP19F_UX?.070:(isPreview?.081:.073)):window.innerHeight*(CP19F_UX?.051:(isPreview?.057:.05));
   let size=Math.max(root*.82,Math.min(ideal,root*4.6));
   ctx.font=`900 ${size}px ${st.fontFamily}`;
   const expected=label.textContent||'ПОДГОТОВКА';
@@ -564,7 +591,7 @@ function startPause(){
       if(CP19?cp19CanPlayStartCue({contextState:audioContext?.state,bufferReady:!!soundBuffers.start,
         transport:CP19.transport,workletReady:cp19Worklet.ready}):
         (audioContext?.state==='running'&&soundBuffers.start))sound('start');
-      else delayedStartGong.schedule(ready,{sessionRef:session,phaseKey:phaseNow().key});
+      else if(soundEnabled)delayedStartGong.schedule(ready,{sessionRef:session,phaseKey:phaseNow().key});
     }else if(config.prepare<=5)sound('single');
     startupCuePlayed=config.prepare<=5;
     ensureScreenOn();
@@ -578,7 +605,7 @@ function startPause(){
 }
 function reset(){if(el.settings.open)return;showAudioRecovery(false);++audioRecoveryEpoch;stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});session=null;lastPhase=null;lastCuePhase=null;config=readConfig();save();releaseScreenOn();draw({notify:false});}
 function buttonSound(){
- if(!isPreview||document.hidden||audioInterruption.interrupted)return false;
+ if(!soundEnabled||!isPreview||document.hidden||audioInterruption.interrupted)return false;
  audioGestureSeen=true;
  const request=++buttonCueEpoch;
  if(audioMode==='html'&&htmlSounds){
@@ -682,7 +709,7 @@ window.addEventListener('pageshow',()=>{
 window.addEventListener('pagehide',()=>{save();if(CP19?.keepalive)cp19KeepAlive.stop();});
 updateInputs(config);restore();draw({notify:false});
 // Fetch and decode sounds without playing. Safari will resume on a real tap.
-if(isPreview&&audioMode==='web'&&(window.AudioContext||window.webkitAudioContext)){
+if(soundEnabled&&isPreview&&audioMode==='web'&&(window.AudioContext||window.webkitAudioContext)){
  try{
   audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
   void preloadSounds();

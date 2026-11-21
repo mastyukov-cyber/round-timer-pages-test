@@ -1,99 +1,81 @@
-/** CP19-F TEST large wheel. Native select values remain authoritative for timer data.
- * This changes visual selection only; no audio or timer model is modified.
- */
+/** CP19-F inline scroll wheels. The existing native <select> remains the only data source. */
 export const wheelIndex=(offset,row,count)=>Math.max(0,Math.min(count-1,Math.round(Math.max(0,offset)/row)));
+export function wheelLabel(select,option){
+ if(!option)return '—';
+ if(select.id==='roundsInput'||option.value==='infinity')return option.textContent;
+ const secs=Number(option.value);
+ if(!Number.isFinite(secs))return option.textContent;
+ return `${String(Math.floor(secs/60)).padStart(2,'0')}:${String(secs%60).padStart(2,'0')}`;
+}
 export function createCP19WheelPicker({form,ids,feedback}={}){
  const doc=form?.ownerDocument;
  if(!doc)return {refresh(){}};
- const overlay=doc.createElement('div');
- overlay.className='cp19f-wheel-overlay';overlay.hidden=true;
- overlay.innerHTML=`<div class="cp19f-wheel-backdrop"></div>
- <section class="cp19f-wheel-sheet" role="dialog" aria-modal="true" aria-label="Выбор параметра тренировки">
-  <div class="cp19f-wheel-head"><h2 id="cp19fWheelTitle">Выбор времени</h2><button class="cp19f-wheel-cancel" type="button">ОТМЕНА</button></div>
-  <div class="cp19f-wheel-window"><div class="cp19f-wheel-center" aria-hidden="true"></div><div class="cp19f-wheel-scroll" role="listbox" tabindex="0" aria-label="Прокрутите для выбора"></div></div>
-  <button class="cp19f-wheel-done" type="button">✓ ВЫБРАТЬ</button>
- </section>`;
- doc.body.append(overlay);
- const scroll=overlay.querySelector('.cp19f-wheel-scroll');
- const header=overlay.querySelector('#cp19fWheelTitle');
- const sheet=overlay.querySelector('.cp19f-wheel-sheet');
- let current=null,currentButton=null,index=0,rowHeight=64,raf=0,ignoreScroll=false;
+ const view=doc.defaultView;
  const entries=[];
- const itemValue=(select)=>select.options[select.selectedIndex]?.textContent||'—';
- function highlight(){
-  scroll.querySelectorAll('.cp19f-wheel-option').forEach((el,i)=>{
-   const active=i===index;el.classList.toggle('is-current',active);
-   el.setAttribute('aria-selected',active?'true':'false');
-  });
- }
- function selectIndex(next,{scrollTo=false,feedbackTick=true}={}){
-  if(!current)return;
-  const n=wheelIndex(next*rowHeight,rowHeight,current.options.length);
-  if(n!==index){index=n;if(feedbackTick)feedback?.picker?.();}
-  highlight();
-  if(scrollTo){ignoreScroll=true;scroll.scrollTop=index*rowHeight;
-   doc.defaultView?.requestAnimationFrame?.(()=>{ignoreScroll=false;});}
- }
- function dismiss(){
-  if(overlay.hidden)return;
-  overlay.hidden=true;
-  if(currentButton?.isConnected)currentButton.focus({preventScroll:true});
-  current=null;currentButton=null;
- }
- function confirm(){
-  if(!current)return;
-  const select=current,value=current.options[index]?.value;
-  if(value!==undefined&&select.value!==value){
-   select.value=value;
-   select.dispatchEvent(new Event('input',{bubbles:true}));
-   select.dispatchEvent(new Event('change',{bubbles:true}));
-  }
-  feedback?.tap?.();
-  refresh();dismiss();
- }
- function open(select,button,title){
-  if(select.disabled)return;
-  current=select;currentButton=button;
-  header.textContent=title;
-  index=Math.max(0,select.selectedIndex);
-  scroll.replaceChildren();
-  const frag=doc.createDocumentFragment();
-  for(let i=0;i<select.options.length;i++){
-   const option=doc.createElement('button');option.type='button';option.className='cp19f-wheel-option';
-   option.textContent=select.options[i].textContent;option.setAttribute('role','option');option.dataset.index=String(i);
-   option.addEventListener('click',()=>selectIndex(i,{scrollTo:true}));frag.append(option);
-  }
-  scroll.append(frag);
-  overlay.hidden=false;
-  rowHeight=parseFloat(doc.defaultView.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||64;
-  scroll.scrollTop=index*rowHeight;
-  highlight();
-  doc.defaultView.requestAnimationFrame(()=>{scroll.scrollTop=index*rowHeight;scroll.focus({preventScroll:true});});
- }
  for(const id of ids||[]){
   const select=form.querySelector('#'+id);if(!select)continue;
   const label=select.closest('label');if(!label)continue;
-  const title=label.childNodes[0]?.textContent?.trim()||'Выбор';
-  const button=doc.createElement('button');button.type='button';button.className='cp19f-wheel-trigger';
-  button.setAttribute('aria-label',`${title}: откройте большое колесо выбора`);
-  select.hidden=true;
-  select.insertAdjacentElement('afterend',button);
-  button.addEventListener('click',()=>open(select,button,title));
-  entries.push({select,button});
+  const wheel=doc.createElement('div');wheel.className='cp19f-inline-wheel';
+  const center=doc.createElement('div');center.className='cp19f-inline-center';center.setAttribute('aria-hidden','true');
+  const scroll=doc.createElement('div');scroll.className='cp19f-inline-scroll';
+  scroll.setAttribute('role','listbox');scroll.setAttribute('tabindex','0');
+  scroll.setAttribute('aria-label',(label.childNodes[0]?.textContent?.trim()||'Выбор')+' — прокрутка значений');
+  const fragment=doc.createDocumentFragment();
+  for(let i=0;i<select.options.length;i++){
+   const row=doc.createElement('button');row.type='button';row.className='cp19f-inline-option';
+   row.setAttribute('role','option');row.dataset.index=String(i);
+   row.textContent=wheelLabel(select,select.options[i]);
+   row.addEventListener('click',()=>choose(i,true));
+   fragment.append(row);
+  }
+  scroll.append(fragment);wheel.append(center,scroll);
+  select.hidden=true;select.insertAdjacentElement('afterend',wheel);
+  const entry={select,wheel,scroll,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0};
+  entries.push(entry);
+  function rowHeight(){return parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;}
+  function highlight(){scroll.querySelectorAll('.cp19f-inline-option').forEach((row,i)=>{
+   const chosen=i===entry.index;row.classList.toggle('is-current',chosen);row.setAttribute('aria-selected',String(chosen));
+  });}
+  function choose(i,scrollTo=false){
+   if(select.disabled)return;
+   const n=Math.max(0,Math.min(select.options.length-1,i));
+   const changed=n!==entry.index;entry.index=n;entry.lastSynced=n;
+   if(changed){
+    select.value=select.options[n].value;
+    select.dispatchEvent(new Event('input',{bubbles:true}));
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    feedback?.picker?.();
+   }
+   highlight();
+   if(scrollTo){entry.busy=true;scroll.scrollTop=n*rowHeight();view?.requestAnimationFrame?.(()=>{entry.busy=false;});}
+  }
+  scroll.addEventListener('scroll',()=>{
+   if(entry.busy||entry.raf)return;
+   entry.raf=view?.requestAnimationFrame?.(()=>{
+    entry.raf=0;choose(wheelIndex(scroll.scrollTop,rowHeight(),select.options.length));
+   })||0;
+  },{passive:true});
+  scroll.addEventListener('keydown',e=>{
+   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();choose(entry.index+(e.key==='ArrowDown'?1:-1),true);}
+   if(e.key==='Home'){e.preventDefault();choose(0,true);}
+   if(e.key==='End'){e.preventDefault();choose(select.options.length-1,true);}
+  });
+  highlight();
  }
- scroll.addEventListener('scroll',()=>{
-  if(!current||ignoreScroll||raf)return;
-  raf=doc.defaultView.requestAnimationFrame(()=>{raf=0;selectIndex(wheelIndex(scroll.scrollTop,rowHeight,current.options.length));});
- },{passive:true});
- scroll.addEventListener('keydown',ev=>{
-  if(ev.key==='ArrowDown'||ev.key==='ArrowUp'){
-   ev.preventDefault();selectIndex(index+(ev.key==='ArrowDown'?1:-1),{scrollTo:true});
-  }else if(ev.key==='Enter'){ev.preventDefault();confirm();}
- });
- overlay.querySelector('.cp19f-wheel-cancel').addEventListener('click',dismiss);
- overlay.querySelector('.cp19f-wheel-backdrop').addEventListener('click',dismiss);
- overlay.querySelector('.cp19f-wheel-done').addEventListener('click',confirm);
- doc.addEventListener('keydown',ev=>{if(ev.key==='Escape'&&!overlay.hidden){ev.preventDefault();dismiss();}});
- function refresh(){for(const {select,button} of entries){button.textContent=itemValue(select)+' ▾';button.disabled=select.disabled;}}
- refresh();return {refresh,get open(){return !overlay.hidden}};
+ function refresh(){
+  for(const entry of entries){
+   const {select,wheel,scroll}=entry;wheel.classList.toggle('is-disabled',select.disabled);
+   scroll.setAttribute('aria-disabled',String(select.disabled));
+   const idx=Math.max(0,select.selectedIndex);
+   if(scroll.clientHeight===0){entry.lastSynced=NaN;continue;}
+   if(idx!==entry.lastSynced){entry.lastSynced=idx;entry.index=idx;
+    const h=parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;
+    scroll.scrollTop=idx*h;
+    scroll.querySelectorAll('.cp19f-inline-option').forEach((row,i)=>{
+     row.classList.toggle('is-current',i===idx);row.setAttribute('aria-selected',String(i===idx));
+    });
+   }
+  }
+ }
+ refresh();return {refresh};
 }

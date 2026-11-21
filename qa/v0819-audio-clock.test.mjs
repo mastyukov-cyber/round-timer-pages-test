@@ -82,7 +82,7 @@ test('visibility loss invalidates in-flight recovery without creating another co
 });
 test('source unchanged until TEST-only integration; no MP3 or user data required',()=>{
  const sw=source('sw.js'),app=source('app.mjs');
- assert(sw.includes('round-timer-shell-v0.8.19.9-test-cp19f-ui-wheels'));
+ assert(sw.includes('round-timer-shell-v0.8.20.0-test-cp19f-sound-layout'));
  assert(app.includes('DIAGNOSTICS_VERSION='));
  assert(app.includes('audioClockWatchdog.sample()'));
  assert(app.includes('미하ил')===false);
@@ -92,13 +92,13 @@ test('v0.8.19 TEST r478 matches measured reference rhythm at 10 seconds and pres
  assert(app.includes("type==='ten-double'?[0,.478]"));
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
  assert(fallback.includes("},478);"));
- assert(html.includes('미하일 0.8.19.9'));
+ assert(html.includes('미하일 0.8.20.0'));
  assert(!html.includes('미하일 ВЕРСИЯ'));
  assert(html.includes('audioRecoveryButton'));
 });
 test('no playback in background and no catch-up bursts remain core invariants',()=>{
  const app=source('app.mjs');
- assert(app.includes('if(document.hidden||audioInterruption.interrupted)return'));
+ assert(app.includes('if(!soundEnabled||document.hidden||audioInterruption.interrupted)return'));
  assert(app.includes('isCueFresh(ticks[0]*1000-cuePhase.remainingMs)'));
  assert(app.includes('pulseStalledContext('));
  assert(app.includes('cueForPhaseTransition(phase)'));

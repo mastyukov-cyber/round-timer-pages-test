@@ -12,7 +12,7 @@ test('CP19 worklet cannot consume a gong until audio worklet is ready',()=>{
 });
 test('CP19 first gong gates worklet readiness while late gong remains limited to 150ms',()=>{
  assert.match(app,/CP19\?cp19CanPlayStartCue\(/);
- assert.match(app,/else delayedStartGong\.schedule\(ready,/);
+ assert.match(app,/else if\(soundEnabled\)delayedStartGong\.schedule\(ready,/);
  assert.match(app,/elapsedNow\(\)<=\(CP19\?150:3000\)/);
 });
 test('CP19 preload retries when ANY approved audio sample is absent',()=>{

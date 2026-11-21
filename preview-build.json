@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.19.9-cp19f-ui-large-wheel-test",
+  "version": "v0.8.20.0-cp19f-grey-wheel-sound-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -20,7 +20,7 @@
   ],
   "rollback_branch": "rollback/round-timer-cp18-test-v08192-20261116",
   "change": "CP18 isolated A/B: direct-gesture HTMLAudio fallback when WebAudio is not immediately ready, then at most 0ms vs 30ms deferred WebAudio window. 180ms baseline remains at normal TEST URL. 478ms clack, MP3 bytes, timer model unchanged.",
-  "note": "CP19-F TEST UI only: actually enlarged countdown within visible bounds, accessible large scroll wheels, visual feedback; original WAV/MP3 and E unchanged. Physical Safari QA pending.",
+  "note": "Existing TEST repository only: large grey wheels; settings row work|rounds, prepare|rest; green ON/red OFF mutes all timer cues without controlling Apple Music; bigger physical countdown and browser QA pending iPhone.",
   "mac_required": false,
   "cp19_variants": [
     {
@@ -76,5 +76,12 @@
     "haptics": "visual button/tick feedback and navigator.vibrate only on supported browsers",
     "ios_physical_vibration": "not supported by standard Safari Vibration API",
     "target_repository": "mastyukov-cyber/round-timer-pages-test"
+  },
+  "cp19f_sound_toggle": {
+    "default": "ON",
+    "on": "green, all timer sounds enabled",
+    "off": "red, all timer sounds disabled",
+    "persist": "round-timer-cp19f-sound-toggle-v1",
+    "external_music": "unaffected"
   }
 }

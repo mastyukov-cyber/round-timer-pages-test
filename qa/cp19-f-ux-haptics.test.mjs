@@ -26,8 +26,8 @@ test('F uses visible clock fitting instead of canceled CSS scaling',()=>{
  assert.match(app,/el\.clock\.style\.transform=`scale\(/);
  assert.match(css,/\.cp19f-ux \.clock\{transform:scale\(1\.70,4\.64\)/);
  assert.match(css,/\.cp19f-ux \.clock\{transform:scale\(2\.85,2\.05\)/);
- assert.match(css,/\.cp19f-wheel-trigger/);
- assert.match(css,/\.cp19f-wheel-scroll/);
+ assert.match(css,/\.cp19f-inline-wheel/);
+ assert.match(css,/\.cp19f-inline-scroll/);
 });
 test('native selects remain authoritative and F gets a custom large wheel',()=>{
  const app=read('app.mjs'),html=read('index.html');
@@ -42,6 +42,6 @@ test('native selects remain authoritative and F gets a custom large wheel',()=>{
 test('offline shell precaches new haptic module, keeps approved WAV assets',()=>{
  const sw=read('sw.js');
  assert.match(sw,/cp19-haptics\.mjs/);
- assert.match(sw,/round-timer-shell-v0\.8\.19\.9-test-cp19f-ui-wheels/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.0-test-cp19f-sound-layout/);
  for(const sound of ['button','studio-gong-start','studio-gong-end','woodclack-single','woodclack-double'])assert.ok(sw.includes('sounds/cp19-wav/'+sound+'.wav'));
 });
