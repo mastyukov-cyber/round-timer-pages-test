@@ -1,0 +1,103 @@
+name: APP-001 Round Timer QA HUB one-shot Chromium then WebKit (synthetic only)
+
+on:
+  push:
+    branches:
+      - pilot/app001-qa-hub-browser-v1-20261121
+    paths:
+      - .github/workflows/app001-qa-hub-once.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app001-qa-hub-browser-once
+  cancel-in-progress: false
+
+jobs:
+  qa-once:
+    if: github.event.before == 'd67275d704d82179685e6d6b767ae0913c9bf951' && github.event.created == false && github.event.deleted == false && github.event.forced == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+      NPM_CONFIG_FETCH_RETRIES: '0'
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout exact TEST branch, no credentials or global Git safe.directory
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          set-safe-directory: false
+          fetch-depth: 2
+      - name: Use exact pinned Node.js 22.16.0 on host
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22.16.0'
+      - name: STOP FIRST verify event HEAD parent one-file diff and 36 pinned assets
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = 'mastyukov-cyber/round-timer-pages-test'
+          test "$GITHUB_REF" = 'refs/heads/pilot/app001-qa-hub-browser-v1-20261121'
+          test "$PWD" = "$GITHUB_WORKSPACE"
+          test "$(git rev-parse HEAD^)" = 'd67275d704d82179685e6d6b767ae0913c9bf951'
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          expected="$(printf 'A\t.github/workflows/app001-qa-hub-once.yml')"
+          actual="$(git diff --name-status HEAD^ HEAD)"
+          test "$actual" = "$expected"
+          test -z "$(git status --porcelain)"
+          test "$(node --version)" = 'v22.16.0'
+          node --check qa-hub/browser-smoke.mjs
+          node -e "const p=require('./qa-hub/package.json'); const l=require('./qa-hub/package-lock.json'); if(p.name!=='app001-qa-hub-browser-pilot'||p.dependencies.playwright!=='1.65.1'||l.packages[''].dependencies.playwright!=='1.65.1'||l.packages['node_modules/playwright'].version!=='1.65.1'||l.packages['node_modules/playwright-core'].version!=='1.65.1') process.exit(1)"
+          test "$(git rev-parse HEAD:qa-hub/browser-smoke.mjs)" = '3ebcf6d87573809fb88ff2e292f4ce112cab5018'
+          test "$(git rev-parse HEAD:qa-hub/package-lock.json)" = '9a6702da0508d4f026e650c9c2ffecee4943fbd8'
+          test "$(git rev-parse HEAD:qa-hub/package.json)" = 'a00d682a0377ac9e25293481d6f4d919d2fddf2b'
+          test "$(git rev-parse HEAD:qa-hub/.gitignore)" = '96402bbe8fb70164fb1ce31d52f00891ff2c6f15'
+          test "$(git rev-parse HEAD:qa-hub/README.md)" = 'ddba651e175e8bdeb04c5cce8184f39891494850'
+          test "$(git rev-parse HEAD:sw.js)" = '98d69c742770b144adfa5c92458206bfb9f5376f'
+          test "$(git rev-parse HEAD:app.mjs)" = 'a088313722ef7824371972532adac3510e3ba6ec'
+          test "$(git rev-parse HEAD:cp19-audio-modes.mjs)" = 'fde41dd001f36bc4ad8fe55314daa0e26f6cf8e6'
+      - name: Install only locked dependencies (host, no scripts, no retries)
+        working-directory: qa-hub
+        run: npm ci --ignore-scripts --no-audit --no-fund --no-progress
+      - name: SHA-verify all 36 pinned Round Timer static assets
+        working-directory: qa-hub
+        run: npm run verify
+      - name: Exactly one isolated offline-network Docker Chromium then WebKit (max 300s)
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test -d "$GITHUB_WORKSPACE/qa-hub/node_modules/playwright"
+          test -z "$(git status --porcelain)"
+          test -f "$GITHUB_WORKSPACE/qa-hub/.gitignore"
+          mkdir -p "$GITHUB_WORKSPACE/qa-hub/.run"
+          test -d "$GITHUB_WORKSPACE/qa-hub/.run"
+          test -w "$GITHUB_WORKSPACE/qa-hub/.run"
+          git check-ignore -q qa-hub/.run/
+          test -z "$(git status --porcelain)"
+          mkdir -p "$RUNNER_TEMP/app001-qa-output"
+          chmod 700 "$RUNNER_TEMP/app001-qa-output"
+          test -d "$RUNNER_TEMP/app001-qa-output"
+          test -w "$RUNNER_TEMP/app001-qa-output"
+          timeout --signal=TERM --kill-after=15s 300s docker run --rm \
+            --network none \
+            --read-only \
+            --cap-drop=ALL \
+            --security-opt=no-new-privileges \
+            --pids-limit=384 \
+            --memory=3g \
+            --cpus=2 \
+            --shm-size=768m \
+            --user "$(id -u):$(id -g)" \
+            --env HOME=/tmp \
+            --env CI=true \
+            --env PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
+            --tmpfs /tmp:rw,nosuid,size=512m,mode=1777 \
+            --volume "$GITHUB_WORKSPACE:/repo:ro" \
+            --volume "$RUNNER_TEMP/app001-qa-output:/repo/qa-hub/.run:rw" \
+            --workdir /repo/qa-hub \
+            mcr.microsoft.com/playwright:v1.65.1-noble \
+            node browser-smoke.mjs qa
