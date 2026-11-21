@@ -9,7 +9,7 @@ test('TEST root and dedicated launcher choose F; explicit E and A/B remain selec
  assert.match(a,/!new URLSearchParams\(globalThis.location\?\.search\|\|''\)\.has\('cp18'\)/);
  assert.match(a,/!new URLSearchParams\(globalThis.location\?\.search\|\|''\)\.has\('cp19'\)/);
  assert.match(a,/CP19_MODE=\(CP19_F_LAUNCH\|\|CP19_F_ROOT_DEFAULT\)\?'wav-keepalive'/);
- assert.match(a,/CP19F_UX\?'0\.8\.20\.0':'0\.8\.19\.4'/);
+ assert.match(a,/CP19F_UX\?'0\.8\.20\.1':'0\.8\.19\.4'/);
 });
 test('server and offline cache never return root for missing test-f.html',async()=>{
  const sw=read('sw.js');const h={};let currentResponse=null;

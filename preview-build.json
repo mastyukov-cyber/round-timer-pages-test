@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.0-cp19f-grey-wheel-sound-test",
+  "version": "v0.8.20.1-cp19f-inline-zoom-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -83,5 +83,11 @@
     "off": "red, all timer sounds disabled",
     "persist": "round-timer-cp19f-sound-toggle-v1",
     "external_music": "unaffected"
+  },
+  "cp19f_inline_zoom": {
+    "effect": "in-place +5.5% during touch/scroll, +4% landscape",
+    "finish": "auto-collapse after scroll settles",
+    "selection": "existing select updates directly, no modal or confirmation",
+    "safari_device_qa": "NOT_RUN"
   }
 }

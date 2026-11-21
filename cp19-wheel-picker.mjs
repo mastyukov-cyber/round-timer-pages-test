@@ -30,8 +30,35 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   }
   scroll.append(fragment);wheel.append(center,scroll);
   select.hidden=true;select.insertAdjacentElement('afterend',wheel);
-  const entry={select,wheel,scroll,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0};
+  const entry={select,wheel,scroll,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0,settleTimer:null,touching:false};
   entries.push(entry);
+  function beginInlineInteraction(){
+   if(select.disabled)return;
+   wheel.classList.add('is-engaged');
+   if(entry.settleTimer!==null){view?.clearTimeout?.(entry.settleTimer);entry.settleTimer=null;}
+  }
+  function scheduleInlineCollapse(delay=380){
+   if(entry.settleTimer!==null)view?.clearTimeout?.(entry.settleTimer);
+   entry.settleTimer=view?.setTimeout?.(()=>{
+    entry.settleTimer=null;
+    if(entry.touching){scheduleInlineCollapse(delay);return;}
+    wheel.classList.remove('is-engaged');
+   },delay)??null;
+  }
+  wheel.addEventListener('pointerdown',()=>{
+   if(select.disabled)return;
+   entry.touching=true;
+   beginInlineInteraction();
+  },{passive:true});
+  for(const name of ['pointerup','pointercancel']){
+   wheel.addEventListener(name,()=>{
+    entry.touching=false;
+    scheduleInlineCollapse();
+   },{passive:true});
+  }
+  scroll.addEventListener('scrollend',()=>{
+   if(!entry.touching)scheduleInlineCollapse(180);
+  },{passive:true});
   function rowHeight(){return parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;}
   function highlight(){scroll.querySelectorAll('.cp19f-inline-option').forEach((row,i)=>{
    const chosen=i===entry.index;row.classList.toggle('is-current',chosen);row.setAttribute('aria-selected',String(chosen));
@@ -51,26 +78,37 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   }
   scroll.addEventListener('scroll',()=>{
    if(entry.busy||entry.raf)return;
+   beginInlineInteraction();
+   scheduleInlineCollapse(450);
    entry.raf=view?.requestAnimationFrame?.(()=>{
     entry.raf=0;choose(wheelIndex(scroll.scrollTop,rowHeight(),select.options.length));
    })||0;
   },{passive:true});
   scroll.addEventListener('keydown',e=>{
-   if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();choose(entry.index+(e.key==='ArrowDown'?1:-1),true);}
-   if(e.key==='Home'){e.preventDefault();choose(0,true);}
-   if(e.key==='End'){e.preventDefault();choose(select.options.length-1,true);}
+   if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault();beginInlineInteraction();choose(entry.index+(e.key==='ArrowDown'?1:-1),true);scheduleInlineCollapse();
+   }
+   if(e.key==='Home'){e.preventDefault();beginInlineInteraction();choose(0,true);scheduleInlineCollapse();}
+   if(e.key==='End'){e.preventDefault();beginInlineInteraction();choose(select.options.length-1,true);scheduleInlineCollapse();}
   });
   highlight();
  }
  function refresh(){
   for(const entry of entries){
    const {select,wheel,scroll}=entry;wheel.classList.toggle('is-disabled',select.disabled);
+   if(select.disabled){
+    if(entry.settleTimer!==null)view?.clearTimeout?.(entry.settleTimer);
+    entry.settleTimer=null;entry.touching=false;wheel.classList.remove('is-engaged');
+   }
    scroll.setAttribute('aria-disabled',String(select.disabled));
    const idx=Math.max(0,select.selectedIndex);
    if(scroll.clientHeight===0){entry.lastSynced=NaN;continue;}
    if(idx!==entry.lastSynced){entry.lastSynced=idx;entry.index=idx;
     const h=parseFloat(view?.getComputedStyle(scroll).getPropertyValue('--wheel-row'))||52;
+    // Initial/restored positioning must not trigger the interaction zoom.
+    entry.busy=true;
     scroll.scrollTop=idx*h;
+    view?.requestAnimationFrame?.(()=>{entry.busy=false;});
     scroll.querySelectorAll('.cp19f-inline-option').forEach((row,i)=>{
      row.classList.toggle('is-current',i===idx);row.setAttribute('aria-selected',String(i===idx));
     });

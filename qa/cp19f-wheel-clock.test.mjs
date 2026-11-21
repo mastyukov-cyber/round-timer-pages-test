@@ -46,5 +46,5 @@ test('service worker caches new UI modules for offline PWA and retains approved 
   assert.ok(sw.includes(x),x);
   assert.ok(existsSync(new URL('../'+x,import.meta.url)),x);
  }
- assert.match(sw,/round-timer-shell-v0\.8\.20\.0-test-cp19f-sound-layout/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.1-test-cp19f-inline-zoom/);
 });
