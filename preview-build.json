@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.19.5-cp19-f-wav-keepalive-test",
+  "version": "v0.8.19.6-cp19-f-wav-ux-haptics-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -20,7 +20,7 @@
   ],
   "rollback_branch": "rollback/round-timer-cp18-test-v08192-20261116",
   "change": "CP18 isolated A/B: direct-gesture HTMLAudio fallback when WebAudio is not immediately ready, then at most 0ms vs 30ms deferred WebAudio window. 180ms baseline remains at normal TEST URL. 478ms clack, MP3 bytes, timer model unchanged.",
-  "note": "CP19-F WAV+Prime+KeepAlive isolated TEST candidate; E MP3 profile retained exactly; iPhone device QA pending; no Github Actions intentionally run.",
+  "note": "CP19-F WAV + prime + keep-alive with UX scaling and best-effort haptics; E untouched. iPhone vibration not available via navigator.vibrate. Physical Safari QA pending.",
   "mac_required": false,
   "cp19_variants": [
     {
@@ -51,5 +51,13 @@
     }
   ],
   "rollback_cp19_test_sha": "d29b7b3035bf044ddc8acd0cb921dbd0453c244e",
-  "rollback_branch_cp19": "rollback/round-timer-cp19-cp18-tested-20261117"
+  "rollback_branch_cp19": "rollback/round-timer-cp19-cp18-tested-20261117",
+  "cp19f_ux": {
+    "larger_timer_portrait_landscape": true,
+    "larger_native_select_tap_targets": true,
+    "native_ios_picker_wheel_size": "OS-controlled",
+    "haptics_android_and_supported_browsers": "best-effort navigator.vibrate",
+    "ios_haptic": "not supported by standard web API",
+    "release": "TEST pilot only"
+  }
 }

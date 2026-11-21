@@ -8,9 +8,12 @@ import {cp18WindowFromSearch,deferredButtonCueAllowed} from './cp18-audio-window
 import {CP19_MODES,cp19Mode,cp19Paths,cp19PrimeAudio,cp19CanPlayStartCue} from './cp19-audio-modes.mjs';
 import {createCP19KeepAlive} from './cp19-keepalive.mjs';
 import {createCP19WorkletHost} from './cp19-worklet-host.mjs';
+import {createCP19Haptics} from './cp19-haptics.mjs';
 const CP19_MODE=cp19Mode(globalThis.location?.search||'');
 const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
-const CP19_VERSION=CP19_MODE==='wav-keepalive'?'0.8.19.5':'0.8.19.4';
+const CP19F_UX=CP19_MODE==='wav-keepalive';
+if(CP19F_UX)document.documentElement.classList.add('cp19f-ux');
+const CP19_VERSION=CP19F_UX?'0.8.19.6':'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
 const DIAGNOSTICS_VERSION=CP19?`${CP19_VERSION}-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({
@@ -37,6 +40,7 @@ if(AUDIO_QA_CONTROLS && isPreview){
   try{musicMixEnabled=localStorage.getItem(PREVIEW_MUSIC_KEY)!=='off';}catch(_){musicMixEnabled=true;}
 }
 
+const cp19Haptics=CP19F_UX?createCP19Haptics({navigatorRef:navigator}):null;
 const byId=id=>document.getElementById(id);
 if(CP19){
  const label=document.querySelector?.('.preview-version');
@@ -317,7 +321,8 @@ function endWebBackgroundReturn(){
  });
 }
 window.addEventListener('focus',endWebBackgroundReturn);
-el.audioRecover?.addEventListener('click',()=>{
+el.audioRecover?.addEventListener('pointerdown',()=>cp19Haptics?.tap());
+ el.audioRecover?.addEventListener('click',()=>{
   if(document.hidden)return;
   if(audioClockNeedsGesture&&audioContext){
    stopActiveAudio({fadeMs:0});
@@ -418,12 +423,13 @@ function fitClock(force=false){
  const st=getComputedStyle(el.clock);
  ctx.font=`900 100px ${st.fontFamily}`;
  const raw=ctx.measureText('88:88').width-100*.055*4;
- const scaleX=portrait?(isPreview?1.51:1.2):(isPreview?2.23:1.587),scaleY=portrait?(isPreview?4.05:4.3164):(isPreview?1.79:1.587);
+ const scaleX=portrait?(CP19F_UX?1.62:(isPreview?1.51:1.2)):(CP19F_UX?2.45:(isPreview?2.23:1.587));
+  const scaleY=portrait?(CP19F_UX?4.12:(isPreview?4.05:4.3164)):(CP19F_UX?1.85:(isPreview?1.79:1.587));
  // In landscape the expanded round count must not force a smaller or cropped clock.
  // RC19: fill more available width in both orientations while retaining
  // a small physical inset; the fitted font shrinks before any clipping.
- const byWidth=(frame.clientWidth*(isPreview?.965:.98))/(raw/100)/scaleX;
- const byHeight=(frame.clientHeight*(isPreview?(portrait?1.01:.985):.95))/scaleY;
+ const byWidth=(frame.clientWidth*(CP19F_UX?.987:(isPreview?.965:.98)))/(raw/100)/scaleX;
+ const byHeight=(frame.clientHeight*(CP19F_UX?(portrait?1.005:.975):(isPreview?(portrait?1.01:.985):.95)))/scaleY;
  const size=Math.max(15,Math.min(byWidth,byHeight,620));
  el.clock.style.fontSize=`${size}px`;
  fitLabels();
@@ -597,6 +603,7 @@ function bindFastPress(target,action,{allowed=()=>true,suppress=()=>false}={}){
  let pressed=false;
  target?.addEventListener('pointerdown',event=>{
    if(event.isPrimary===false||!allowed())return;
+   cp19Haptics?.tap();
    if(CP19&&!CP19.prime)cp19Gesture();
    if(suppress())return;
    pressed=buttonSound();
@@ -616,7 +623,11 @@ function willStartCue(){
 }
 bindFastPress(el.start,()=>startPause(),{allowed:()=>!el.settings.open,suppress:willStartCue});
 bindFastPress(el.reset,()=>reset(),{allowed:()=>!el.settings.open});
-el.form.addEventListener('change',()=>{if(!session){config=readConfig();draw({notify:false});}});
+el.form.addEventListener('input',event=>{if(event.target?.tagName==='SELECT')cp19Haptics?.picker();});
+ el.form.addEventListener('change',event=>{
+   if(event.target?.tagName==='SELECT')cp19Haptics?.picker();
+   if(!session){config=readConfig();draw({notify:false});}
+ });
 el.settings.addEventListener('toggle',()=>{
  document.body.classList.toggle('settings-visible',el.settings.open);
  el.start.disabled=!!el.settings.open;

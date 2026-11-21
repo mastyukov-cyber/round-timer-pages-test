@@ -30,7 +30,7 @@ test('other sounds, user-visible version and approved WebAudio button volume unc
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
  assert(fallback.includes("type==='slow-double'?250:145"));
  assert(index.includes('미하일 0.8.19.2'));
- assert(sw.includes("round-timer-shell-v0.8.19.5-test-cp19-f"));
+ assert(sw.includes("round-timer-shell-v0.8.19.6-test-cp19f-ux"));
  assert(sw.includes("'./sounds/woodclack-single.mp3'"));
  assert(sw.includes("'./audio-clock-watchdog.mjs'"));
 });

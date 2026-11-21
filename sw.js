@@ -1,9 +1,9 @@
 // Offline-first service worker v0.8.19.3 CP18 A/B TEST. Avoid waiting for a blocked/throttled CDN.
 // App shell and audio must be served from local CacheStorage after first install.
-const CACHE_NAME = 'round-timer-shell-v0.8.19.5-test-cp19-f';
+const CACHE_NAME = 'round-timer-shell-v0.8.19.6-test-cp19f-ux';
 const SHELL = [
   './', './index.html', './styles.css', './app.mjs', './engine.mjs',
-  './cp18-audio-window.mjs', './cp19-audio-modes.mjs', './cp19-keepalive.mjs', './cp19-audio-worklet.mjs', './cp19-worklet-host.mjs', './diagnostics/sender.mjs', './diagnostics/schema.mjs', './audio-clock-watchdog.mjs', './audio-guard.mjs', './html-audio.mjs', './web-audio-retire.mjs', './audio-duck.mjs',
+  './cp18-audio-window.mjs', './cp19-audio-modes.mjs', './cp19-haptics.mjs', './cp19-keepalive.mjs', './cp19-audio-worklet.mjs', './cp19-worklet-host.mjs', './diagnostics/sender.mjs', './diagnostics/schema.mjs', './audio-clock-watchdog.mjs', './audio-guard.mjs', './html-audio.mjs', './web-audio-retire.mjs', './audio-duck.mjs',
   './manifest.webmanifest', './privacy.html', './icons/icon-192.png', './icons/icon-512.png',
   './icons/apple-touch-icon.png', './sounds/gong-start.mp3',
   './sounds/gong-end.mp3', './sounds/woodclack.mp3',

@@ -185,7 +185,7 @@ test('478ms HTML fallback at ten seconds, stable UI and fresh offline cache',()=
  assert(app.includes("type==='ten-double'?[0,.478]"));
  assert(htmlPage.includes('미하일 0.8.19.2'));
  assert(htmlPage.includes('id="audioRecoveryButton"'));
- assert(sw.includes("round-timer-shell-v0.8.19.5-test-cp19-f"));
+ assert(sw.includes("round-timer-shell-v0.8.19.6-test-cp19f-ux"));
  assert(!htmlPage.includes('ТЕСТОВАЯ ВЕРСИЯ'));
 });
 
