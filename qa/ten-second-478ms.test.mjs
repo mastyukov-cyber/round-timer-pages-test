@@ -29,8 +29,8 @@ test('other sounds, user-visible version and approved WebAudio button volume unc
  const app=read('app.mjs'),fallback=read('html-audio.mjs'),index=read('index.html'),sw=read('sw.js');
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
  assert(fallback.includes("type==='slow-double'?250:145"));
- assert(index.includes('미하일 0.8.20.6'));
- assert(sw.includes("round-timer-shell-v0.8.20.6-test-settings-sync"));
+ assert(index.includes('미하일 0.8.20.7'));
+ assert(sw.includes("round-timer-shell-v0.8.20.7-test-settings-sync"));
  assert(sw.includes("'./sounds/woodclack-single.mp3'"));
  assert(sw.includes("'./audio-clock-watchdog.mjs'"));
 });

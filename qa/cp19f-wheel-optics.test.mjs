@@ -35,13 +35,13 @@ test('Safari dragging is 20 percent more sensitive while touching, preserving li
  assert.match(picker,/const n=wheelIndex\(scroll\.scrollTop,rowHeight\(\),select\.options\.length\);\s*choose\(n,true\)/);
 });
 
-test('v0.8.20.6 has a unique offline cache and unchanged settings storage semantics',()=>{
+test('v0.8.20.7 has a unique offline cache and unchanged settings storage semantics',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),html=read('index.html');
  const meta=JSON.parse(read('preview-build.json'));
- assert.equal(meta.version,'v0.8.20.6-selected-wheel-landscape-round-test');
+ assert.equal(meta.version,'v0.8.20.7-cold-first-tap-html-fallback-test');
  assert.equal(meta.production,false);
  assert.equal(meta.cp19f_wheel_optics.touch_drag_gain,1.2);
  assert.match(app,/round-timer-cp19f-settings-v1/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.6-test-settings-sync/);
- assert.match(html,/src="\.\/app\.mjs\?v=08206"/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.7-test-settings-sync/);
+ assert.match(html,/src="\.\/app\.mjs\?v=08207"/);
 });

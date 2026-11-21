@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.6-selected-wheel-landscape-round-test",
+  "version": "v0.8.20.7-cold-first-tap-html-fallback-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -129,5 +129,15 @@
     "short_landscape_safety_max_height_px": 350,
     "settings_storage_key": "unchanged",
     "ios_device_qa": "NOT_RUN"
+  },
+  "cp19f_cold_first_tap": {
+    "issue": "first two button presses silent on physical iPhone cold start — USER_REPORTED_FAIL v0.8.20.6",
+    "web_audio_buffer_unready": "attempt existing preloaded HTML button audio directly on first pointer gesture",
+    "start_gong": "direct HTML playback during first START click when WebAudio is not ready, no later replay",
+    "prepare_warning": "direct HTML clack when not yet decoded",
+    "avoid_double": "no delayed duplicate for successful HTML fallback",
+    "start_preserve_button": true,
+    "physical_device_qa": "NOT_RUN",
+    "production": false
   }
 }

@@ -17,7 +17,7 @@ const CP19_MODE=(CP19_F_LAUNCH||CP19_F_ROOT_DEFAULT)?'wav-keepalive':cp19Mode(gl
 const CP19=CP19_MODE===null?null:CP19_MODES[CP19_MODE];
 const CP19F_UX=CP19_MODE==='wav-keepalive';
 if(CP19F_UX)document.documentElement?.classList?.add?.('cp19f-ux');
-const CP19_VERSION=CP19F_UX?'0.8.20.6':'0.8.19.4';
+const CP19_VERSION=CP19F_UX?'0.8.20.7':'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
 const DIAGNOSTICS_VERSION=CP19?`${CP19_VERSION}-cp19-${CP19_MODE}-test`:(CP18_BUTTON_WINDOW_MS===null?'0.8.19.2-test':`0.8.19.3-cp18-${CP18_BUTTON_WINDOW_MS}-test`);
 const diagnosticSender=createDiagnosticSender({
@@ -596,7 +596,8 @@ function startPause(){
   delayedStartGong.invalidate();
   const current=session&&phaseNow();
   if(!session||current?.type==='done'){
-    stopActiveAudio({preserveMix:keepForegroundMix()});
+    // Do not immediately silence the first-tap button cue during START.
+    stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});
     firstClackMeasured=false;
     if(cueLatencyLabel)cueLatencyLabel.textContent='Первый щелчок: задержка ещё не измерена';
     if(audioClockNeedsGesture&&audioContext){
@@ -611,8 +612,11 @@ function startPause(){
       if(CP19?cp19CanPlayStartCue({contextState:audioContext?.state,bufferReady:!!soundBuffers.start,
         transport:CP19.transport,workletReady:cp19Worklet.ready}):
         (audioContext?.state==='running'&&soundBuffers.start))sound('start');
-      else if(soundEnabled)delayedStartGong.schedule(ready,{sessionRef:session,phaseKey:phaseNow().key});
-    }else if(config.prepare<=5)sound('single');
+      // When cold, play the existing HTML cue in this START gesture.
+      // Do not queue a second WebAudio gong if HTML playback was attempted.
+      else if(soundEnabled && !cp19DirectGestureFallback('start'))
+        delayedStartGong.schedule(ready,{sessionRef:session,phaseKey:phaseNow().key});
+    }else if(config.prepare<=5 && !sound('single'))cp19DirectGestureFallback('single');
     startupCuePlayed=config.prepare<=5;
     ensureScreenOn();
   } else if(session.status==='running'){
@@ -624,6 +628,12 @@ function startPause(){
   return startupCuePlayed;
 }
 function reset(){if(el.settings.open)return;showAudioRecovery(false);++audioRecoveryEpoch;stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});session=null;lastPhase=null;lastCuePhase=null;config=readConfig();save();releaseScreenOn();draw({notify:false});}
+// First-tap iOS fallback: synchronous HTML play() attempt in the gesture.
+// Do not queue a duplicate cue or change external audio session state.
+function cp19DirectGestureFallback(type){
+ if(!CP19||!soundEnabled||document.hidden||audioInterruption.interrupted||!htmlSounds)return false;
+ return type==='button'?htmlSounds.playButton():htmlSounds.play(type);
+}
 function buttonSound(){
  if(!soundEnabled||!isPreview||document.hidden||audioInterruption.interrupted)return false;
  audioGestureSeen=true;
@@ -636,6 +646,14 @@ function buttonSound(){
  const ready=(!audioContext||audioContext.state!=='running'||!soundBuffers.button)
    ?unlockAudio():Promise.resolve(true);
  if(sound('button'))return true;
+ // CP19 previously returned true for silent first taps when WAV had not decoded.
+ // Use the preloaded matching HTML cue synchronously without a delayed echo.
+ // If unavailable, allow the following click handler one retry.
+ if(CP19){
+  const accepted=cp19DirectGestureFallback('button');
+  void Promise.resolve(ready).catch(()=>{});
+  return accepted;
+ }
  // CP18 A/B only: try the original preloaded MP3 in this same gesture.
  // If that transport accepted the press, never add a delayed WebAudio echo.
  if(!CP19&&CP18_BUTTON_WINDOW_MS!==null&&htmlSounds?.playButton()){
