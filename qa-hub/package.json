@@ -1,0 +1,13 @@
+{
+  "name": "app001-qa-hub-browser-pilot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "verify": "node browser-smoke.mjs verify",
+    "qa": "node browser-smoke.mjs qa"
+  },
+  "dependencies": {
+    "playwright": "1.65.1"
+  }
+}
