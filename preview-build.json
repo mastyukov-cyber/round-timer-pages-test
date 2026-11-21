@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.19.8-cp19-f-root-cachefix-test",
+  "version": "v0.8.19.9-cp19f-ui-large-wheel-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -20,7 +20,7 @@
   ],
   "rollback_branch": "rollback/round-timer-cp18-test-v08192-20261116",
   "change": "CP18 isolated A/B: direct-gesture HTMLAudio fallback when WebAudio is not immediately ready, then at most 0ms vs 30ms deferred WebAudio window. 180ms baseline remains at normal TEST URL. 478ms clack, MP3 bytes, timer model unchanged.",
-  "note": "CP19-F iPhone Home Screen cache fix: F default on existing TEST root, network-first exact-page offline fallback. No new repository. Device verification pending.",
+  "note": "CP19-F TEST UI only: actually enlarged countdown within visible bounds, accessible large scroll wheels, visual feedback; original WAV/MP3 and E unchanged. Physical Safari QA pending.",
   "mac_required": false,
   "cp19_variants": [
     {
@@ -69,5 +69,12 @@
     "navigation_cache": "network-first-exact-offline"
   },
   "root_mode": "wav-keepalive",
-  "distribution_target": "existing TEST repo mastyukov-cyber/round-timer-pages-test only"
+  "distribution_target": "existing TEST repo mastyukov-cyber/round-timer-pages-test only",
+  "cp19f_ui": {
+    "clock": "dynamic actual-drawn-bounds fitting portrait+landscape",
+    "wheel": "large custom scroll snap wheel; native select remains data source",
+    "haptics": "visual button/tick feedback and navigator.vibrate only on supported browsers",
+    "ios_physical_vibration": "not supported by standard Safari Vibration API",
+    "target_repository": "mastyukov-cyber/round-timer-pages-test"
+  }
 }

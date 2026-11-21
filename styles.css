@@ -139,3 +139,44 @@ main { flex:1;min-height:0;display:flex;flex-direction:column; gap:clamp(8px,1.3
  .cp19f-ux .settings-form{gap:10px;padding:11px;}
  .cp19f-ux .settings-form select{min-height:53px;padding:8px 10px;}
 }
+
+/* CP19-F TEST: more visible clock height with width-safe aspect fitting in JS. */
+@media (orientation:portrait){ .cp19f-ux .clock{transform:scale(1.70,4.64);} }
+@media (orientation:landscape){ .cp19f-ux .clock{transform:scale(2.85,2.05);} }
+.cp19f-ux .settings-form select[hidden]{display:none!important;}
+.cp19f-wheel-trigger{
+ display:block;width:100%;min-height:66px;padding:12px;border:2px solid #aacfff;
+ border-radius:15px;background:#102441;color:#fff;text-align:center;
+ font-size:clamp(1.2rem,4.5vw,1.52rem);font-weight:850;font-variant-numeric:tabular-nums;
+ touch-action:manipulation;
+}
+.cp19f-wheel-trigger:disabled{opacity:.5;}
+.cp19f-wheel-overlay[hidden]{display:none!important;}
+.cp19f-wheel-overlay{position:fixed;inset:0;z-index:210;display:flex;align-items:center;justify-content:center;padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) max(8px,env(safe-area-inset-bottom)) max(8px,env(safe-area-inset-left));}
+.cp19f-wheel-backdrop{position:absolute;inset:0;background:#050914e8;}
+.cp19f-wheel-sheet{position:relative;display:flex;flex-direction:column;gap:12px;width:min(100%,520px);max-height:calc(100dvh - 26px);padding:16px;border:2px solid #93b7fb;border-radius:22px;background:#1a2a46;color:#fff;box-shadow:0 20px 70px #000b;}
+.cp19f-wheel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;}
+.cp19f-wheel-head h2{margin:0;font-size:clamp(1.06rem,4vw,1.44rem);line-height:1.15;}
+.cp19f-wheel-cancel{min-height:45px;padding:8px 14px;border:1px solid #93b7fb;border-radius:12px;color:#fff;background:#ffffff1a;font-size:1rem;font-weight:800;}
+.cp19f-wheel-window{position:relative;min-height:0;flex:0 1 auto;border-radius:18px;overflow:hidden;background:linear-gradient(to bottom,#101c34,#202f51 42%,#202f51 58%,#101c34);}
+.cp19f-wheel-scroll{--wheel-row:64px;display:block;height:calc(var(--wheel-row)*5);max-height:40dvh;overflow-y:auto;scroll-snap-type:y mandatory;scroll-padding-block:calc(var(--wheel-row)*2);overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-block:calc(var(--wheel-row)*2);scrollbar-width:none;touch-action:pan-y;}
+.cp19f-wheel-scroll::-webkit-scrollbar{display:none;}
+.cp19f-wheel-center{position:absolute;z-index:1;pointer-events:none;left:8px;right:8px;top:50%;height:64px;transform:translateY(-50%);border:2px solid #b2d3ff;border-radius:15px;background:#9cbcff1e;box-shadow:inset 0 0 20px #8db4ff26;}
+.cp19f-wheel-option{display:block;width:100%;height:var(--wheel-row);margin:0;padding:0 10px;border:0;background:none;color:#dae6ff;font-size:clamp(1.55rem,6.6vw,2.15rem);font-weight:800;text-align:center;scroll-snap-align:center;touch-action:pan-y;}
+.cp19f-wheel-option.is-current{color:#fff;font-size:clamp(1.8rem,7.5vw,2.45rem);font-weight:900;}
+.cp19f-wheel-done{flex:none;min-height:60px;width:100%;padding:9px 16px;border:0;border-radius:15px;background:#9cbcff;color:#071324;font-size:1.16rem;font-weight:900;}
+.cp19f-touch{animation:cp19f-tap-feedback 190ms ease-out;}
+@keyframes cp19f-tap-feedback{0%{filter:brightness(1.45);box-shadow:0 0 0 4px #a4c4ff55;transform:scale(.965);}100%{filter:brightness(1);box-shadow:0 0 0 0 transparent;transform:scale(1);}}
+@media (orientation:landscape){
+ .cp19f-ux .settings-form .cp19f-wheel-trigger{min-height:48px;padding:7px;font-size:1.1rem;}
+ .cp19f-wheel-sheet{width:min(95vw,700px);padding:8px 14px;gap:6px;max-height:calc(100dvh - 12px);}
+ .cp19f-wheel-scroll{--wheel-row:48px;height:calc(var(--wheel-row)*5);max-height:none;}
+ .cp19f-wheel-center{height:52px;}
+ .cp19f-wheel-head h2{font-size:1.04rem;}
+ .cp19f-wheel-cancel{min-height:40px;}
+ .cp19f-wheel-done{min-height:43px;}
+}
+@media (prefers-reduced-motion:reduce){.cp19f-touch{animation:none;filter:brightness(1.18);}}
+
+/* Free real vertical space for the landscape clock; never overlap the phase label. */
+@media (orientation:landscape){.cp19f-ux .round-count{font-size:3.75em;}}
