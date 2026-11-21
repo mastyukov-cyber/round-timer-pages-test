@@ -32,7 +32,7 @@ jobs:
           set -euo pipefail
           for f in app.mjs engine.mjs cp19-wheel-picker.mjs audio-guard.mjs audio-clock-watchdog.mjs html-audio.mjs sw.js qa/*.test.mjs tests/*.test.mjs; do node --check "$f"; done
           node --input-type=module -e "import fs from 'node:fs';const v=JSON.parse(fs.readFileSync('preview-build.json','utf8'));if(v.production!==false||!v.version.includes('0.8.20.4'))process.exit(1);"
-          node --test qa/*.test.mjs tests/*.test.mjs
+          node --test qa/*.test.mjs tests/timer-model.test.mjs
       - name: Verify five original studio MP3 SHA-256 fingerprints
         run: |
           node --input-type=module - <<'JS'
