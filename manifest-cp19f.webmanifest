@@ -1,0 +1,27 @@
+{
+  "name": "Раунд таймер F · TEST",
+  "short_name": "Таймер F TEST",
+  "description": "Тестовая WAV-версия F с prime и keep-alive. Не FINAL.",
+  "lang": "ru",
+  "start_url": "./test-f.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#08130d",
+  "theme_color": "#08130d",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "id": "./test-f.html"
+}
