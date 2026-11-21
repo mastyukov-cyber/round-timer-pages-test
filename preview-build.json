@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.1-cp19f-inline-zoom-test",
+  "version": "v0.8.20.2-safari-wheel-touch-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -89,5 +89,11 @@
     "finish": "auto-collapse after scroll settles",
     "selection": "existing select updates directly, no modal or confirmation",
     "safari_device_qa": "NOT_RUN"
+  },
+  "cp19f_wheel_safari_fix": {
+    "issue": "physical iPhone 0.8.20.1 wheel did not scroll",
+    "touch": "explicit touchstart/move/end with passive:false touchmove",
+    "safety": "no transformed parent scroll area, commit select on touchend, tap fallback",
+    "device_acceptance": "NOT_RUN"
   }
 }

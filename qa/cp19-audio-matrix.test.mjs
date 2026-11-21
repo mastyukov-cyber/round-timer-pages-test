@@ -107,5 +107,5 @@ test('offline app shell includes all CP19 and CP18 modules and five WAV files',(
   ...['button','studio-gong-start','studio-gong-end','woodclack-single','woodclack-double'].map(x=>'sounds/cp19-wav/'+x+'.wav')]){
   assert.ok(sw.includes(m),'missing '+m);
  }
- assert.match(sw,/round-timer-shell-v0\.8\.20\.1-test-cp19f-inline-zoom/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.2-test-safari-wheel-touch/);
 });

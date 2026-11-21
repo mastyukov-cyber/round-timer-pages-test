@@ -17,7 +17,7 @@ test('F differs from user-approved E only in MP3/WAV codec',()=>{
 });
 test('F adds a distinct version and separate stored session without affecting E',()=>{
  const app=src('app.mjs');
- assert.match(app,/CP19F_UX\?'0\.8\.20\.1':'0\.8\.19\.4'/);
+ assert.match(app,/CP19F_UX\?'0\.8\.20\.2':'0\.8\.19\.4'/);
  assert.match(app,/timer-active-session-cp19-\$\{CP19_MODE\}-v1/);
  assert.match(app,/\$\{CP19_VERSION\} · TEST \$\{CP19.label\}/);
  assert.match(app,/CP19\?150:3000/);
@@ -28,7 +28,7 @@ test('F uses existing five verified WAV from offline shell, not worklet',()=>{
  const manifest=JSON.parse(src('cp19-wav-manifest.json'));
  assert.equal(manifest.files.length,5);
  const shell=src('sw.js');
- assert.match(shell,/round-timer-shell-v0\.8\.20\.1-test-cp19f-inline-zoom/);
+ assert.match(shell,/round-timer-shell-v0\.8\.20\.2-test-safari-wheel-touch/);
  for(const file of manifest.files)assert.ok(shell.includes(`./sounds/cp19-wav/${file.wav}`));
  assert.equal(CP19_MODES['wav-keepalive'].transport,'web');
 });
@@ -38,5 +38,5 @@ test('TEST manifest exposes F as non-production and preserves E comparison',()=>
  assert.equal(m.cp19_variants.length,6);
  assert.ok(m.cp19_variants.some(x=>x.name==='mp3-keepalive'));
  assert.ok(m.cp19_variants.some(x=>x.name==='wav-keepalive'));
- assert.equal(m.version,'v0.8.20.1-cp19f-inline-zoom-test');
+ assert.equal(m.version,'v0.8.20.2-safari-wheel-touch-test');
 });

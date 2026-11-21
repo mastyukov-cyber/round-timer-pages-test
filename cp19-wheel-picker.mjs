@@ -22,15 +22,16 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   scroll.setAttribute('aria-label',(label.childNodes[0]?.textContent?.trim()||'Выбор')+' — прокрутка значений');
   const fragment=doc.createDocumentFragment();
   for(let i=0;i<select.options.length;i++){
-   const row=doc.createElement('button');row.type='button';row.className='cp19f-inline-option';
+   const row=doc.createElement('div');row.className='cp19f-inline-option';
    row.setAttribute('role','option');row.dataset.index=String(i);
    row.textContent=wheelLabel(select,select.options[i]);
    row.addEventListener('click',()=>choose(i,true));
    fragment.append(row);
   }
   scroll.append(fragment);wheel.append(center,scroll);
+  label.addEventListener('click',event=>{if(wheel.contains(event.target))event.preventDefault();});
   select.hidden=true;select.insertAdjacentElement('afterend',wheel);
-  const entry={select,wheel,scroll,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0,settleTimer:null,touching:false};
+  const entry={select,wheel,scroll,index:Math.max(0,select.selectedIndex),lastSynced:NaN,busy:false,raf:0,settleTimer:null,touching:false,touchStartY:0,touchStartTop:0,touchDragged:false};
   entries.push(entry);
   function beginInlineInteraction(){
    if(select.disabled)return;
@@ -45,17 +46,38 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
     wheel.classList.remove('is-engaged');
    },delay)??null;
   }
-  wheel.addEventListener('pointerdown',()=>{
-   if(select.disabled)return;
-   entry.touching=true;
-   beginInlineInteraction();
+  // Safari: do not transform the native scroll container while it owns a touch gesture.
+  // Drive the small wheel explicitly from touch distance; the selected native option is
+  // committed only at touchend, so draw()/refresh() never fights the finger.
+  scroll.addEventListener('touchstart',event=>{
+   if(select.disabled||event.touches.length!==1)return;
+   entry.touching=true;entry.busy=true;entry.touchDragged=false;
+   entry.touchStartY=event.touches[0].clientY;entry.touchStartTop=scroll.scrollTop;
+   scroll.style.scrollSnapType='none';
   },{passive:true});
-  for(const name of ['pointerup','pointercancel']){
-   wheel.addEventListener(name,()=>{
-    entry.touching=false;
-    scheduleInlineCollapse();
-   },{passive:true});
+  scroll.addEventListener('touchmove',event=>{
+   if(!entry.touching||select.disabled||event.touches.length!==1)return;
+   const delta=entry.touchStartY-event.touches[0].clientY;
+   if(Math.abs(delta)>4){entry.touchDragged=true;beginInlineInteraction();}
+   if(!entry.touchDragged)return;
+   if(event.cancelable)event.preventDefault();
+   scroll.scrollTop=Math.max(0,Math.min(scroll.scrollHeight-scroll.clientHeight,entry.touchStartTop+delta));
+   entry.index=wheelIndex(scroll.scrollTop,rowHeight(),select.options.length);
+   highlight();
+  },{passive:false});
+  function endTouch(){
+   if(!entry.touching)return;
+   entry.touching=false;
+   scroll.style.scrollSnapType='';
+   const moved=entry.touchDragged;entry.touchDragged=false;
+   if(moved){
+    const n=wheelIndex(scroll.scrollTop,rowHeight(),select.options.length);
+    choose(n,true);scheduleInlineCollapse(220);
+   }else{entry.busy=false;scheduleInlineCollapse(180);}
   }
+  scroll.addEventListener('touchend',endTouch,{passive:true});
+  scroll.addEventListener('touchcancel',endTouch,{passive:true});
+  // Desktop and keyboard still use the native scroll implementation.
   scroll.addEventListener('scrollend',()=>{
    if(!entry.touching)scheduleInlineCollapse(180);
   },{passive:true});
@@ -66,7 +88,7 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
   function choose(i,scrollTo=false){
    if(select.disabled)return;
    const n=Math.max(0,Math.min(select.options.length-1,i));
-   const changed=n!==entry.index;entry.index=n;entry.lastSynced=n;
+   const changed=n!==select.selectedIndex;entry.index=n;entry.lastSynced=n;
    if(changed){
     select.value=select.options[n].value;
     select.dispatchEvent(new Event('input',{bubbles:true}));
@@ -77,7 +99,7 @@ export function createCP19WheelPicker({form,ids,feedback}={}){
    if(scrollTo){entry.busy=true;scroll.scrollTop=n*rowHeight();view?.requestAnimationFrame?.(()=>{entry.busy=false;});}
   }
   scroll.addEventListener('scroll',()=>{
-   if(entry.busy||entry.raf)return;
+   if(entry.busy||entry.raf||entry.touching)return;
    beginInlineInteraction();
    scheduleInlineCollapse(450);
    entry.raf=view?.requestAnimationFrame?.(()=>{
