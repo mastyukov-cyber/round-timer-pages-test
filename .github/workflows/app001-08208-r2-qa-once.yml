@@ -1,0 +1,50 @@
+name: APP-001 v0.8.20.8 isolated QA once
+on:
+  push:
+    branches:
+      - pilot/app001-compact-wheels-cold-audio-08208-r2-20261122
+    paths:
+      - .github/workflows/app001-08208-r2-qa-once.yml
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact TEST candidate
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: 6ef643f6146940970b6c9d0124011f73b9bdacf5
+      - name: Pin source and verify TEST identity
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "6ef643f6146940970b6c9d0124011f73b9bdacf5"
+          test "${GITHUB_REPOSITORY}" = "mastyukov-cyber/round-timer-pages-test"
+          node --input-type=module -e "import fs from 'node:fs';const v=JSON.parse(fs.readFileSync('preview-build.json','utf8'));if(v.production!==false||v.version!=='v0.8.20.8-compact-wheels-cold-audio-priority-test')process.exit(1);"
+      - name: Set up Node 26
+        uses: actions/setup-node@v4
+        with:
+          node-version: '26'
+      - name: Syntax and scoped full current regression
+        run: |
+          set -euo pipefail
+          for f in app.mjs engine.mjs cp19-wheel-picker.mjs audio-guard.mjs audio-clock-watchdog.mjs html-audio.mjs sw.js qa/*.test.mjs tests/*.test.mjs; do node --check "$f"; done
+          node --test qa/*.test.mjs tests/timer-model.test.mjs
+      - name: Verify five original studio MP3 SHA-256 fingerprints
+        run: |
+          node --input-type=module - <<'JS'
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const manifest=JSON.parse(fs.readFileSync('studio-audio-manifest.json','utf8'));
+          if(manifest.files.length!==5) throw Error('Expected exactly five MP3 files');
+          for(const f of manifest.files){
+            const data=fs.readFileSync('sounds/'+f.name);
+            if(data.length!==f.bytes) throw Error('Size changed '+f.name);
+            if(createHash('sha256').update(data).digest('hex')!==f.sha256) throw Error('SHA changed '+f.name);
+          }
+          console.log('MP3 SHA-256: PASS 5/5');
+          JS
+      - name: No deploy in QA
+        run: echo "Isolated synthetic QA only; no Pages or FINAL deployment"
