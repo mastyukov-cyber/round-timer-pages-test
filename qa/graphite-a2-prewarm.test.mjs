@@ -59,7 +59,7 @@ test('clock, full timer behavior and button play operation stay bit-identical to
   ['function fitClock(force=false){',"window.addEventListener('resize'"],
   ['function buttonSound(){','// Pointerdown plays the button sound'],
   ['function startPause(){','function reset(){'],
-  ['function draw(', 'function fitClock(force=false){']]){
+  ['function draw(', 'function startPause(){']]){
   assert.equal(snippet(exp,a,b),snippet(original,a,b),a+' must stay frozen');
  }
  const clock=read('preview-variants-clock-fit.mjs');
