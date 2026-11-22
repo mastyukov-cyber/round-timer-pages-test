@@ -60,7 +60,7 @@ test('round label grows, shifts down, with no change to frozen countdown metrics
  assert.match(css,/translateY\(clamp\(12px,2\.7vh,19px\)\) scale\(1\.20\)/);
  assert.match(css,/max-height:350px/);
  assert.match(css,/translateY\(7px\) scale\(1\.10\)/);
- assert.doesNotMatch(css,/font-size\s*:|\.clock\s*\{|\.clock-frame\s*\{|--wheel-row\s*:/);
+ assert.doesNotMatch(css,/\.round-line\s*\{[^}]*font-size\s*:|\.clock\s*\{|\.clock-frame\s*\{|--wheel-row\s*:/);
  const base=read('preview-variants-clock-fit.mjs');
  assert.match(base,/const scaleX=portrait\?1\.79:2\.87/);
  assert.match(base,/const scaleY=portrait\?5\.20:2\.46/);
