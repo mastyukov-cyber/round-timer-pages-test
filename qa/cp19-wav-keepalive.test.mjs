@@ -28,7 +28,7 @@ test('F uses existing five verified WAV from offline shell, not worklet',()=>{
  const manifest=JSON.parse(src('cp19-wav-manifest.json'));
  assert.equal(manifest.files.length,5);
  const shell=src('sw.js');
- assert.match(shell,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
+ assert.match(shell,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
  for(const file of manifest.files)assert.ok(shell.includes(`./sounds/cp19-wav/${file.wav}`));
  assert.equal(CP19_MODES['wav-keepalive'].transport,'web');
 });
@@ -38,5 +38,5 @@ test('TEST manifest exposes F as non-production and preserves E comparison',()=>
  assert.equal(m.cp19_variants.length,6);
  assert.ok(m.cp19_variants.some(x=>x.name==='mp3-keepalive'));
  assert.ok(m.cp19_variants.some(x=>x.name==='wav-keepalive'));
- assert.equal(m.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
+ assert.equal(m.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
 });

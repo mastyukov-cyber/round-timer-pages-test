@@ -132,9 +132,9 @@ test('scope protects sound toggle, background state, original rhythm, and new of
  assert.match(app,/type==='ten-double'\?\[0,\.478\]/);
  assert.match(app,/round-timer-cp19f-settings-v1/);
  const meta=JSON.parse(read('preview-build.json'));
- assert.equal(meta.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
+ assert.equal(meta.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
  assert.equal(meta.production,false);
  assert.equal(meta.cp19f_cold_first_tap.physical_device_qa,'NOT_RUN');
- assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
- assert.match(read('index.html'),/src="\.\/app\.mjs\?v=08209"/);
+ assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(read('index.html'),/src="\.\/app-graphite-main-082014\.mjs\?v=082014"/);
 });

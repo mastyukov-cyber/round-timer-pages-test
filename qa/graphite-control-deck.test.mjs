@@ -106,7 +106,7 @@ test('Graphite A2 settings, wheel mechanics, red limit dashes and frozen countdo
  assert.match(graphite,/scale\(1\.055\)/);
  const metadata=JSON.parse(read('preview-build.json'));
  assert.equal(metadata.production,false);
- assert.equal(metadata.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
- assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
- assert.match(read('index.html'),/src="\.\/app\.mjs\?v=08209"/);
+ assert.equal(metadata.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
+ assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(read('index.html'),/src="\.\/app-graphite-main-082014\.mjs\?v=082014"/);
 });

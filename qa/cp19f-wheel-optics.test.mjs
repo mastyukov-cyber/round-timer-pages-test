@@ -38,10 +38,10 @@ test('Safari dragging is 20 percent more sensitive while touching, preserving li
 test('v0.8.20.9 has a unique offline cache and unchanged settings storage semantics',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),html=read('index.html');
  const meta=JSON.parse(read('preview-build.json'));
- assert.equal(meta.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
+ assert.equal(meta.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
  assert.equal(meta.production,false);
  assert.equal(meta.cp19f_wheel_optics.touch_drag_gain,1.2);
  assert.match(app,/round-timer-cp19f-settings-v1/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
- assert.match(html,/src="\.\/app\.mjs\?v=08209"/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(html,/src="\.\/app-graphite-main-082014\.mjs\?v=082014"/);
 });

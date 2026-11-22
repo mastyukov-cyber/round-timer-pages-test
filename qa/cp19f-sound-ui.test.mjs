@@ -41,6 +41,6 @@ test('mute controls all timer audio paths, persists ON/OFF, cancels delayed cues
 });
 test('new PWA cache changes identity and includes versioned JS/CSS',()=>{
  const sw=read('sw.js');
- for(const file of ['./styles.css?v=08209','./app.mjs?v=08209','cp19-wheel-picker.mjs']) assert.ok(sw.includes(file),file);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
+ for(const file of ['./styles.css?v=082014','./app-graphite-main-082014.mjs?v=082014','cp19-wheel-picker.mjs']) assert.ok(sw.includes(file),file);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
 });

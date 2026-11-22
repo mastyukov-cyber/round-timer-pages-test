@@ -29,13 +29,13 @@ test('landscape round word and count are doubled and lowered without affecting p
 test('0.8.20.9 preserves timer configuration and original audio; changes cache identity',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),html=read('index.html');
  const meta=JSON.parse(read('preview-build.json'));
- assert.equal(meta.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
+ assert.equal(meta.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
  assert.equal(meta.production,false);
  assert.equal(meta.cp19f_selected_wheel_landscape_round.selected_value_magnification,1.5);
  assert.equal(meta.cp19f_selected_wheel_landscape_round.landscape_round_word_factor,2);
  assert.equal(meta.cp19f_selected_wheel_landscape_round.landscape_round_count_factor,2);
  assert.match(app,/round-timer-cp19f-settings-v1/);
  assert.match(app,/CP19F_UX\?'0\.8\.20\.9':'0\.8\.19\.4'/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
- assert.match(html,/src="\.\/app\.mjs\?v=08209"/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(html,/src="\.\/app-graphite-main-082014\.mjs\?v=082014"/);
 });

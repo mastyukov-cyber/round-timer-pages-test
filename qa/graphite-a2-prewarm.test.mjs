@@ -92,6 +92,6 @@ test('first audible sample measurement is local playing event, not an acoustic-l
  assert.doesNotMatch(exp,/prewarmReadout.*diagnosticSender\.report/);
  assert.equal(JSON.parse(read('preview-build.json')).production,false);
  assert.equal(JSON.parse(read('preview-build.json')).version,
-  'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
- assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
+  'v0.8.20.14-main-graphite-prewarm-control-deck-test');
+ assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
 });

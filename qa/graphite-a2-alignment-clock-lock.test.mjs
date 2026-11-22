@@ -71,8 +71,8 @@ test('Graphite A2 preview changes only new files; root TEST and final untouched 
  const html=read('preview-graphite-v2.html');
  assert.match(html,/src="\.\/preview-graphite-v2-app\.mjs\?v=082011"/);
  assert.equal(JSON.parse(read('preview-build.json')).version,
-  'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
+  'v0.8.20.14-main-graphite-prewarm-control-deck-test');
  assert.equal(JSON.parse(read('preview-build.json')).production,false);
- assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
- assert.match(read('index.html'),/src="\.\/app\.mjs\?v=08209"/);
+ assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(read('index.html'),/src="\.\/app-graphite-main-082014\.mjs\?v=082014"/);
 });

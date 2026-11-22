@@ -46,14 +46,14 @@ test('cold button fallback occurs before unlockAudio and does not schedule anoth
 test('cache refresh to 0.8.20.9 preserves settings, audio, production isolation and haptic guards',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),html=read('index.html');
  const meta=JSON.parse(read('preview-build.json'));
- assert.equal(meta.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
+ assert.equal(meta.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
  assert.equal(meta.production,false);
  assert.equal(meta.cp19f_compact_wheels_cold_priority.real_iphone_qa,'NOT_RUN');
  assert.equal(meta.cp19f_compact_wheels_cold_priority.portrait_row_px_after,46);
  assert.match(app,/round-timer-cp19f-settings-v1/);
  assert.match(app,/CP19F_UX\?'0\.8\.20\.9':'0\.8\.19\.4'/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
- assert.match(html,/src="\.\/app\.mjs\?v=08209"/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(html,/src="\.\/app-graphite-main-082014\.mjs\?v=082014"/);
  const haptics=read('cp19-haptics.mjs');
  assert.match(haptics,/typeof navigatorRef\?\.vibrate==='function'/);
  assert.doesNotMatch(haptics,/\.click\(\)/);

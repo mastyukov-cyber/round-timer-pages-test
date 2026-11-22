@@ -82,7 +82,7 @@ test('visibility loss invalidates in-flight recovery without creating another co
 });
 test('source unchanged until TEST-only integration; no MP3 or user data required',()=>{
  const sw=source('sw.js'),app=source('app.mjs');
- assert(sw.includes('round-timer-shell-v0.8.20.9-test-settings-sync'));
+ assert(sw.includes('round-timer-shell-v0.8.20.14-main-graphite-prewarm'));
  assert(app.includes('DIAGNOSTICS_VERSION='));
  assert(app.includes('audioClockWatchdog.sample()'));
  assert(app.includes('미하ил')===false);
