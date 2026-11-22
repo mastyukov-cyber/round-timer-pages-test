@@ -16,8 +16,8 @@ test('install page has distinct app identity, title and F manifest',()=>{
  const html=read('test-f.html');
  assert.match(html,/href="\.\/manifest-cp19f\.webmanifest"/);
  assert.match(html,/content="Таймер F TEST"/);
- assert.match(html,/0\.8\.20\.8/);
- assert.match(html,/src="\.\/app\.mjs\?v=08208"/);
+ assert.match(html,/0\.8\.20\.9/);
+ assert.match(html,/src="\.\/app\.mjs\?v=08209"/);
  assert.match(read('index.html'),/href="\.\/manifest\.webmanifest"/);
  assert.equal(JSON.parse(read('manifest.webmanifest')).start_url,'./');
 });
@@ -26,7 +26,7 @@ test('offline cache includes F entrypoint and manifest with new cache identity',
  for(const path of ['./test-f.html','./manifest-cp19f.webmanifest','./cp19-haptics.mjs','./sounds/cp19-wav/button.wav']){
   assert.ok(sw.includes(path),`missing ${path}`);
  }
- assert.match(sw,/round-timer-shell-v0\.8\.20\.8-test-settings-sync/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
  assert.match(sw,/cache\.addAll\(SHELL\)/);
 });
 test('F manifest and app are TEST-scoped and original WAV sound mode unchanged',()=>{
@@ -34,6 +34,6 @@ test('F manifest and app are TEST-scoped and original WAV sound mode unchanged',
  assert.equal(j.production,false);
  assert.equal(j.cp19f_home.start_url,'./test-f.html');
  assert.equal(j.cp19f_home.mode,'wav-keepalive');
- assert.match(read('app.mjs'),/CP19F_UX\?'0\.8\.20\.8':'0\.8\.19\.4'/);
+ assert.match(read('app.mjs'),/CP19F_UX\?'0\.8\.20\.9':'0\.8\.19\.4'/);
  assert.match(read('cp19-audio-modes.mjs'),/'wav-keepalive':Object\.freeze\(\{label:'WAV \+ Web Audio \+ prime \+ keep-alive'/);
 });

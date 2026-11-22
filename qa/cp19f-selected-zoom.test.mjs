@@ -26,16 +26,16 @@ test('landscape round word and count are doubled and lowered without affecting p
  assert.match(css,/margin-top:clamp\(2px,\.7vh,5px\);\s*transform:translateY\(clamp\(5px,1\.5vh,9px\)\)/);
  assert.match(css,/@media \(orientation:landscape\) and \(max-height:350px\) \{[\s\S]*?\.round-count \{font-size:6\.25em;\}/);
 });
-test('0.8.20.8 preserves timer configuration and original audio; changes cache identity',()=>{
+test('0.8.20.9 preserves timer configuration and original audio; changes cache identity',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),html=read('index.html');
  const meta=JSON.parse(read('preview-build.json'));
- assert.equal(meta.version,'v0.8.20.8-compact-wheels-cold-audio-priority-test');
+ assert.equal(meta.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
  assert.equal(meta.production,false);
  assert.equal(meta.cp19f_selected_wheel_landscape_round.selected_value_magnification,1.5);
  assert.equal(meta.cp19f_selected_wheel_landscape_round.landscape_round_word_factor,2);
  assert.equal(meta.cp19f_selected_wheel_landscape_round.landscape_round_count_factor,2);
  assert.match(app,/round-timer-cp19f-settings-v1/);
- assert.match(app,/CP19F_UX\?'0\.8\.20\.8':'0\.8\.19\.4'/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.8-test-settings-sync/);
- assert.match(html,/src="\.\/app\.mjs\?v=08208"/);
+ assert.match(app,/CP19F_UX\?'0\.8\.20\.9':'0\.8\.19\.4'/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
+ assert.match(html,/src="\.\/app\.mjs\?v=08209"/);
 });

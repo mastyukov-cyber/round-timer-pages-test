@@ -4,13 +4,13 @@ import {readFileSync} from 'node:fs';
 const get=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('visible build identity is unique and never confused with previous 0.8.19',()=>{
  const html=get('index.html');
- assert(html.includes('미하일 0.8.20.8</small>'));
+ assert(html.includes('미하일 0.8.20.9</small>'));
  assert(!html.includes('미하일 0.8.19.1</small>'));
- assert(html.includes('name="round-timer-preview-build" content="v0.8.20.8-test"'));
+ assert(html.includes('name="round-timer-preview-build" content="v0.8.20.9-test"'));
 });
 test('offline worker increments cache identity while preserving offline strategy and app shell',()=>{
  const sw=get('sw.js');
- assert(sw.includes("round-timer-shell-v0.8.20.8-test-settings-sync"));
+ assert(sw.includes("round-timer-shell-v0.8.20.9-test-settings-sync"));
  assert(!sw.includes("const CACHE_NAME = 'round-timer-shell-v0.8.19-test-r478'"));
  assert(sw.includes("const local = await cache.match(event.request)"));
  assert(sw.includes("const root = await cache.match('./')"));

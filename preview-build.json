@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.8-compact-wheels-cold-audio-priority-test",
+  "version": "v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -153,6 +153,16 @@
     "audio_load_priority": "button sample first",
     "real_iphone_latency": "NOT_MEASURED",
     "real_iphone_qa": "NOT_RUN",
+    "production": false
+  },
+  "cp19f_skeuo_08209": {
+    "source_pilot_sha": "40850b70c1dfce71ae077130cd82d089bdfec047",
+    "depth_shading": "inline wheel noninteractive top/bottom vignettes and beveled selection",
+    "landscape_rounds": "responsive larger count, measured width guard",
+    "cold_tap": "controls avoid capture-phase audio initialization",
+    "iphone_visual_qa": "NOT_RUN",
+    "iphone_audio_qa": "NOT_RUN",
+    "release_scope": "TEST_ONLY",
     "production": false
   }
 }

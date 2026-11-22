@@ -63,10 +63,10 @@ test('landscape round count has 18 percent more sizing room, accurate ratio widt
  assert.match(css,/\.cp19f-ux \.round-count \{font-size:7\.5em;\}/);
  assert.match(css,/@media \(orientation:landscape\) and \(max-height:350px\)/);
 });
-test('pilot is not accidentally deployed or version bumped before approval',()=>{
+test('approved TEST candidate retains unique 0.8.20.9 version and production:false',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),manifest=JSON.parse(read('preview-build.json'));
- assert.match(app,/CP19F_UX\?'0\.8\.20\.8':'0\.8\.19\.4'/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.8-test-settings-sync/);
+ assert.match(app,/CP19F_UX\?'0\.8\.20\.9':'0\.8\.19\.4'/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.9-test-settings-sync/);
  assert.equal(manifest.production,false);
- assert.equal(manifest.version,'v0.8.20.8-compact-wheels-cold-audio-priority-test');
+ assert.equal(manifest.version,'v0.8.20.9-skeuomorphic-wheels-landscape-first-tap-test');
 });
