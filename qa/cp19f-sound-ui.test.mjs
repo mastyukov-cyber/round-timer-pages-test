@@ -11,7 +11,7 @@ for(const path of ['index.html','test-f.html']){
   assert.ok(indexes.every((v,i)=>!i||v>indexes[i-1]),indexes);
   assert.match(html,/id="soundToggle"[^>]+role="switch"[^>]+aria-label="Звук таймера"/);
   assert.match(html,/data-sound="on">ВКЛ<\/button>/);
-  assert.match(html,/content="v0\.8\.20\.14/);
+  assert.match(html,/content="v0\.8\.20\.15/);
  });
 }
 test('chosen glow toggle is green ON/red OFF with white knob, large wheels are grey',()=>{
@@ -42,5 +42,5 @@ test('mute controls all timer audio paths, persists ON/OFF, cancels delayed cues
 test('new PWA cache changes identity and includes versioned JS/CSS',()=>{
  const sw=read('sw.js');
  for(const file of ['./styles.css?v=082014','./app-graphite-main-082014.mjs?v=082014','cp19-wheel-picker.mjs']) assert.ok(sw.includes(file),file);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.15-main-graphite-ambient/);
 });

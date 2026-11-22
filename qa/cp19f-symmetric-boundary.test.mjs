@@ -21,5 +21,5 @@ test('iPhone-approved touch scrolling and audio remain untouched by visual place
  assert.match(js,/select.value=select.options\[n\].value/);
  assert.match(js,/scroll.scrollTop=Math.max\(0/);
  const cache=read('sw.js');
- assert.match(cache,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(cache,/round-timer-shell-v0\.8\.20\.15-main-graphite-ambient/);
 });

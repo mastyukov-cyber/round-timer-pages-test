@@ -7,11 +7,11 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('both main TEST entrypoints load exactly one Graphite+Prewarm script and identical fixed layout',()=>{
  const root=read('index.html'),installed=read('test-f.html');
  const meta=JSON.parse(read('preview-build.json'));
- assert.equal(meta.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
+ assert.equal(meta.version,'v0.8.20.15-main-graphite-ambient-music-test');
  assert.equal(meta.production,false);
  for(const html of [root,installed]){
-  assert.match(html,/src="\.\/app-graphite-main-082014\.mjs\?v=082014"/);
-  assert.match(html,/content="v0\.8\.20\.14-main-graphite-prewarm-test/);
+  assert.match(html,/src="\.\/app-graphite-main-082015\.mjs\?v=082015"/);
+  assert.match(html,/content="v0\.8\.20\.15-main-graphite-ambient-test/);
   assert.ok(!html.includes('<script type="module" src="./app.mjs'));
   for(const name of ['styles.css','preview-variants-base.css','preview-graphite.css',
     'preview-graphite-v2.css','preview-graphite-deck.css','preview-graphite-main-082014.css'])
@@ -108,7 +108,7 @@ test('settings preserve approved Graphite A2 wheels, red limit marks and no enla
 
 test('offline SW precaches the exact new root, F launcher, assets, fonts, originals and all WAVs',()=>{
  const sw=read('sw.js');
- assert.match(sw,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.15-main-graphite-ambient/);
  for(const url of [
   "'./'",'./index.html','./test-f.html','./manifest.webmanifest','./manifest-cp19f.webmanifest',
   './styles.css?v=082014','./preview-variants-base.css?v=082014',

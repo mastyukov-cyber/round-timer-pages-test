@@ -1,6 +1,6 @@
 {
   "project": "APP-001 Round Timer",
-  "version": "v0.8.20.14-main-graphite-prewarm-control-deck-test",
+  "version": "v0.8.20.15-main-graphite-ambient-music-test",
   "production": false,
   "baseline_test_sha": "0613cb94db26112c8db1caf908b9cfe1f49cd475",
   "baseline_final_sha": "807d30a7895d7abec37fa0ca0d992a3f1184b4db",
@@ -174,6 +174,18 @@
     "offline": "SW precaches root/test-f, Graphite CSS, exact main JS and audio",
     "tests": "NOT_RUN",
     "physical_iphone_audio": "USER_REPORTED_GOOD for prior 0.8.20.13 preview; root candidate NOT_RUN",
+    "scope": "TEST_MAIN_ONLY",
+    "production": false
+  },
+  "cp19f_main_082015": {
+    "source_pilot_sha": "90c2f8914770c10ffb72516c1ce5a17b861b4f11",
+    "changed": "navigator.audioSession.type='ambient' before AudioContext, on real trusted touch and after foreground return; retain Prewarm",
+    "landscape_round_label": "translateY clamp(12px,2.7vh,19px) scale(1.20), short landscape 7px scale(1.10)",
+    "countdown_clock": "FROZEN: preview-variants-clock-fit.mjs unchanged",
+    "audio_files": "UNCHANGED",
+    "offline": "SW precaches new entrypoints, main script, CSS and ambient helper",
+    "apple_music_physical_iphone_qa": "NOT_RUN",
+    "silent_mode_warning": "ambient audio may mute timer cues when iPhone is in silent mode",
     "scope": "TEST_MAIN_ONLY",
     "production": false
   }

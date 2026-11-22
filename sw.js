@@ -1,6 +1,6 @@
 // Offline-first service worker v0.8.19.3 CP18 A/B TEST. Avoid waiting for a blocked/throttled CDN.
 // App shell and audio must be served from local CacheStorage after first install.
-const CACHE_NAME = 'round-timer-shell-v0.8.20.14-main-graphite-prewarm';
+const CACHE_NAME = 'round-timer-shell-v0.8.20.15-main-graphite-ambient';
 const SHELL = [
   './', './index.html', './test-f.html', './manifest-cp19f.webmanifest', './styles.css', './styles.css?v=082014', './app.mjs', './app.mjs?v=08209',
   './preview-variants-base.css', './preview-variants-base.css?v=082014',
@@ -8,6 +8,9 @@ const SHELL = [
   './preview-graphite-v2.css', './preview-graphite-v2.css?v=082014',
   './preview-graphite-deck.css', './preview-graphite-deck.css?v=082014',
   './preview-graphite-main-082014.css', './preview-graphite-main-082014.css?v=082014',
+  './preview-graphite-musicfix.css', './preview-graphite-musicfix.css?v=082015',
+  './app-graphite-main-082015.mjs', './app-graphite-main-082015.mjs?v=082015',
+  './preview-ambient-audio-session.mjs',
   './app-graphite-main-082014.mjs', './app-graphite-main-082014.mjs?v=082014',
   './preview-audio-prewarm.mjs', './preview-variants-clock-fit.mjs', './engine.mjs',
   './cp18-audio-window.mjs', './cp19-audio-modes.mjs', './cp19-wheel-picker.mjs', './cp19-clock-fit.mjs', './cp19-haptics.mjs', './cp19-keepalive.mjs', './cp19-audio-worklet.mjs', './cp19-worklet-host.mjs', './diagnostics/sender.mjs', './diagnostics/schema.mjs', './audio-clock-watchdog.mjs', './audio-guard.mjs', './html-audio.mjs', './web-audio-retire.mjs', './audio-duck.mjs',

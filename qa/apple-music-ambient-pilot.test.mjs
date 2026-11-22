@@ -76,9 +76,9 @@ test('new preview preserves controls and Graphite layout, and does not install/r
   'startPauseButton','resetButton','clock','roundCurrent','roundTotal','soundToggle']){
   assert.equal((html.match(new RegExp('id="'+id+'"','g'))||[]).length,1,id);
  }
- assert.match(read('index.html'),/app-graphite-main-082014\.mjs\?v=082014/);
- assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(read('index.html'),/app-graphite-main-082015\.mjs\?v=082015/);
+ assert.match(read('sw.js'),/round-timer-shell-v0\.8\.20\.15-main-graphite-ambient/);
  assert.equal(JSON.parse(read('preview-build.json')).production,false);
  assert.equal(JSON.parse(read('preview-build.json')).version,
-  'v0.8.20.14-main-graphite-prewarm-control-deck-test');
+  'v0.8.20.15-main-graphite-ambient-music-test');
 });

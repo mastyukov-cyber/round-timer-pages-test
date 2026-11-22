@@ -66,7 +66,7 @@ test('landscape round count has 18 percent more sizing room, accurate ratio widt
 test('approved TEST candidate retains unique 0.8.20.9 version and production:false',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),manifest=JSON.parse(read('preview-build.json'));
  assert.match(app,/CP19F_UX\?'0\.8\.20\.9':'0\.8\.19\.4'/);
- assert.match(sw,/round-timer-shell-v0\.8\.20\.14-main-graphite-prewarm/);
+ assert.match(sw,/round-timer-shell-v0\.8\.20\.15-main-graphite-ambient/);
  assert.equal(manifest.production,false);
- assert.equal(manifest.version,'v0.8.20.14-main-graphite-prewarm-control-deck-test');
+ assert.equal(manifest.version,'v0.8.20.15-main-graphite-ambient-music-test');
 });

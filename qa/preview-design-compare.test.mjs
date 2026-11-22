@@ -46,7 +46,7 @@ test('both entrypoints activate CP19-F and use pilot countdown geometry, without
  assert.ok(fit.includes('const scaleX=portrait?1.79:2.87;'));
  assert.ok(fit.includes('const scaleY=portrait?5.20:2.46;'));
  assert.ok(read('app.mjs').includes("const CP19_VERSION=CP19F_UX?'0.8.20.9':'0.8.19.4'"));
- assert.ok(read('sw.js').includes('round-timer-shell-v0.8.20.14-main-graphite-prewarm'));
+ assert.ok(read('sw.js').includes('round-timer-shell-v0.8.20.15-main-graphite-ambient'));
 });
 
 test('both previews inherit red wheel dashes, mechanical look and compact geometry from the pinned pilot',()=>{
