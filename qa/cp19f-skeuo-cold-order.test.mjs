@@ -51,17 +51,19 @@ test('direct gesture fallback and start/pause safeguards remain in place',()=>{
  assert.match(app,/const maxLateMs=CP19\?0:/);
  assert.match(app,/if\(!CP19\|\|!soundEnabled\|\|document\.hidden\|\|audioInterruption\.interrupted\|\|!htmlSounds\)return false/);
 });
-test('landscape round count has 18 percent more sizing room, accurate ratio width fitting',()=>{
- const app=read('app.mjs'),css=read('styles.css');
+test('round label is compact in landscape so actual remaining countdown has more room',()=>{
+ const app=read('app.mjs'),css=read('styles.css'),clock=read('cp19-clock-fit.mjs');
  assert.match(app,/const shortLandscape=!portrait&&window\.innerHeight<=350/);
- assert.match(app,/CP19F_UX\?\(shortLandscape\?\.034:\.040\)/);
- assert.match(app,/const wordFactor=portrait\?1:CP19F_UX\?\(shortLandscape\?1\.65:2\)/);
- assert.match(app,/const countFactor=portrait\?4\.5:CP19F_UX\?\(shortLandscape\?6\.25:7\.5\)/);
+ assert.match(app,/CP19F_UX\?\(shortLandscape\?\.032:\.034\)/);
+ assert.match(app,/const wordFactor=portrait\?1:CP19F_UX\?\(shortLandscape\?\.95:1\)/);
+ assert.match(app,/const countFactor=portrait\?4\.5:CP19F_UX\?\(shortLandscape\?3\.35:3\.75\)/);
  assert.match(app,/base\*wordFactor/);
  assert.match(app,/base\*countFactor/);
  assert.match(app,/const max=\(el\.round\.parentElement\.clientWidth\|\|window\.innerWidth\)\*\.94/);
- assert.match(css,/\.cp19f-ux \.round-count \{font-size:7\.5em;\}/);
- assert.match(css,/@media \(orientation:landscape\) and \(max-height:350px\)/);
+ assert.match(css,/CP19-F v0\.8\.20\.10: give the remaining countdown priority/);
+ assert.match(css,/\.cp19f-ux \.round-count\{font-size:3\.75em;\}/);
+ assert.match(clock,/scaleX=portrait\?1\.79:2\.87/);
+ assert.match(clock,/scaleY=portrait\?5\.20:2\.46/);
 });
 test('approved TEST candidate retains unique 0.8.20.9 version and production:false',()=>{
  const app=read('app.mjs'),sw=read('sw.js'),manifest=JSON.parse(read('preview-build.json'));

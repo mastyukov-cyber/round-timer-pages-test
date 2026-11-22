@@ -505,14 +505,14 @@ function fitLabels(){
  const ctx=(fitClock.labelCanvas||(fitClock.labelCanvas=document.createElement('canvas'))).getContext('2d');
  if(el.roundCount){
   const st=getComputedStyle(el.round);
-  // Pilot 0.8.20.9: scale landscape round numerals up when height permits.
-  // Measure their actual CSS em factors so wider fractions still fit safely.
+  // Pilot 0.8.20.10: make the REMAINING TIME larger, not the round fraction.
+  // Compact round header frees height; measure actual CSS em factors.
   const shortLandscape=!portrait&&window.innerHeight<=350;
   let base=portrait?window.innerWidth*(CP19F_UX?.058:.068):
-   window.innerHeight*(CP19F_UX?(shortLandscape?.034:.040):.037);
+   window.innerHeight*(CP19F_UX?(shortLandscape?.032:.034):.037);
   base=Math.max(12,Math.min(base,32));
-  const wordFactor=portrait?1:CP19F_UX?(shortLandscape?1.65:2):1;
-  const countFactor=portrait?4.5:CP19F_UX?(shortLandscape?6.25:7.5):4.5;
+  const wordFactor=portrait?1:CP19F_UX?(shortLandscape?.95:1):1;
+  const countFactor=portrait?4.5:CP19F_UX?(shortLandscape?3.35:3.75):4.5;
   ctx.font=`900 ${base*wordFactor}px ${st.fontFamily}`;
   const wordWidth=ctx.measureText('РАУНД').width;
   ctx.font=`900 ${base*countFactor}px ${st.fontFamily}`;
