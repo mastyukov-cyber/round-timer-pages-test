@@ -11,7 +11,7 @@ for(const path of ['index.html','test-f.html']){
   assert.ok(indexes.every((v,i)=>!i||v>indexes[i-1]),indexes);
   assert.match(html,/id="soundToggle"[^>]+role="switch"[^>]+aria-label="Звук таймера"/);
   assert.match(html,/data-sound="on">ВКЛ<\/button>/);
-  assert.match(html,/content="v0\.8\.20\.9/);
+  assert.match(html,/content="v0\.8\.20\.14/);
  });
 }
 test('chosen glow toggle is green ON/red OFF with white knob, large wheels are grey',()=>{

@@ -4,9 +4,9 @@ import {readFileSync} from 'node:fs';
 const get=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('visible build identity is unique and never confused with previous 0.8.19',()=>{
  const html=get('index.html');
- assert(html.includes('미하일 0.8.20.9</small>'));
+ assert(html.includes('미하일 0.8.20.14 · Graphite + Prewarm · TEST</small>'));
  assert(!html.includes('미하일 0.8.19.1</small>'));
- assert(html.includes('name="round-timer-preview-build" content="v0.8.20.9-test"'));
+ assert(html.includes('name="round-timer-preview-build" content="v0.8.20.14-main-graphite-prewarm-test"'));
 });
 test('offline worker increments cache identity while preserving offline strategy and app shell',()=>{
  const sw=get('sw.js');

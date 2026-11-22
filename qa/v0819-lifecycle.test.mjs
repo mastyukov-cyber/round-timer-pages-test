@@ -184,7 +184,7 @@ test('478ms HTML fallback at ten seconds, stable UI and fresh offline cache',()=
  const app=appSource(),htmlPage=source('index.html'),sw=source('sw.js');
  assert(app.includes("volume:kind==='button'?.1944:kind==='clack'?.96:.9"));
  assert(app.includes("type==='ten-double'?[0,.478]"));
- assert(htmlPage.includes('미하일 0.8.20.9'));
+ assert(htmlPage.includes('미하일 0.8.20.14'));
  assert(htmlPage.includes('id="audioRecoveryButton"'));
  assert(sw.includes("round-timer-shell-v0.8.20.14-main-graphite-prewarm"));
  assert(!htmlPage.includes('ТЕСТОВАЯ ВЕРСИЯ'));
