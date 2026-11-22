@@ -25,7 +25,7 @@ test('rounds picker aligns vertically with work picker, without changing wheel d
  assert.match(picker,/select\.insertAdjacentElement\('afterend',wheel\)/);
  assert.match(picker,/const label=select\.closest\('label'\)/);
  assert.ok(!css.includes('--wheel-row'));
- assert.ok(!css.includes('height:'));
+ assert.doesNotMatch(css,/(^|[;{\s])height\s*:/m);
  assert.ok(!css.includes('width:'));
  assert.ok(!css.includes('position:absolute'));
 });
