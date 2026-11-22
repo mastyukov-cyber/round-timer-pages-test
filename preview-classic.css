@@ -1,0 +1,50 @@
+/* APP-001 TEST B — Classic Apple Skeuomorphism. Style-only. */
+html.cp19f-ux #settings[open]{
+ color:#23313b;
+ border:2px solid #f4f7fa;
+ border-radius:23px;
+ background:
+  repeating-linear-gradient(90deg,#ffffff10 0px,#89949e0b 2px,#ffffff0b 4px),
+  linear-gradient(155deg,#dce1e5 0%,#b5bec6 43%,#8d98a3 100%);
+ box-shadow:
+  0 0 0 150vmax #071019df,
+  0 25px 65px #04070cca,
+  inset 0 2px 0 #ffffff,
+  inset 0 0 0 3px #75818b,
+  inset 0 -6px 15px #6977829c;
+}
+html.cp19f-ux #settings[open] summary{
+ color:#25333e;
+ background:
+  linear-gradient(180deg,#f9fbfd 0%,#e0e5e9 8%,#bcc5cc 51%,#8c99a3 100%);
+ border-bottom:2px solid #71808e;
+ box-shadow:inset 0 2px 1px #ffffffd9,inset 0 -4px 7px #5a69778c,0 3px 6px #34435159;
+ text-shadow:0 1px 0 #ffffffd8;
+ letter-spacing:.014em;
+}
+html.cp19f-ux #settings[open] .chevron{color:#3f4d5a;text-shadow:0 1px 0 #fff;}
+html.cp19f-ux #settings[open] .settings-form{
+ background:
+  radial-gradient(ellipse at 50% 0%,#ffffff9c,transparent 62%),
+  repeating-linear-gradient(91deg,#ffffff08 0px,#64727e09 2px,#ffffff09 4px),
+  linear-gradient(165deg,#c7cfd5 0%,#aeb9c2 55%,#a2acb6 100%);
+}
+html.cp19f-ux #settings[open] .settings-form label{
+ color:#283640;text-shadow:0 1px 0 #ffffffa9;
+ letter-spacing:.007em;
+}
+html.cp19f-ux #settings[open] .cp19f-audio-row{
+ color:#293844;border:1.5px solid #84929f;
+ background:linear-gradient(180deg,#e7ebef,#c7d0d8 55%,#a3afba);
+ box-shadow:inset 0 2px 3px #ffffffaa,inset 0 -3px 5px #6b79866e,0 3px 6px #4758656b;
+}
+html.cp19f-ux #settings[open] .cp19f-audio-label{color:#25333d;text-shadow:0 1px 0 #fff;}
+html.cp19f-ux #settings[open] .close-settings{
+ color:#ffffff;
+ background:linear-gradient(180deg,#80c7ff 0%,#3e94df 22%,#126abb 58%,#175eae 100%);
+ border:1.5px solid #aedcff;border-bottom:3px solid #174b81;
+ text-shadow:0 -1px 1px #0a4175b8;
+ box-shadow:0 4px 8px #34445390,inset 0 2px 2px #ffffffb2,inset 0 -3px 4px #0a4176ab;
+}
+html.cp19f-ux #settings[open] .close-settings:active{background:linear-gradient(180deg,#1d75c1,#2f9be2);filter:brightness(.98);}
+html.cp19f-ux #settings[open] .preview-version{color:#415261;opacity:.95;}
