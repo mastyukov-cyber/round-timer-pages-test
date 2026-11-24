@@ -1,6 +1,6 @@
 // Offline-first service worker v0.8.19.3 CP18 A/B TEST. Avoid waiting for a blocked/throttled CDN.
 // App shell and audio must be served from local CacheStorage after first install.
-const CACHE_NAME = 'app001-g-bt-test-shell-v1';
+const CACHE_NAME = 'app001-g-bt-test-shell-v2';
 const SHELL = [
   './',
   './index.html',
@@ -21,7 +21,8 @@ const SHELL = [
   './graphite-polish-082016.css',
   './graphite-polish-082016.css?v=082019',
   './app.mjs',
-  './app.mjs?v=g-bt-test1',
+  './app.mjs?v=g-bt-test2',
+  './foreground-audio-clock.mjs',
   './bluetooth-lead.mjs',
   './preview-variants-clock-fit.mjs',
   './preview-audio-prewarm.mjs',

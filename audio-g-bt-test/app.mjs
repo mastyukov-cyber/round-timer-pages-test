@@ -4,7 +4,8 @@ import {createDelayedStartGuard,createActiveSoundController,createAudioInterrupt
 import {createHtmlAudioController} from './html-audio.mjs';
 import {createWebAudioRetirement} from './web-audio-retire.mjs';
 import {createAudioDucking} from './audio-duck.mjs';
-import {createAudioClockWatchdog,pulseStalledContext} from './audio-clock-watchdog.mjs';
+import {pulseStalledContext} from './audio-clock-watchdog.mjs';
+import {createForegroundAudioGate,boundedResume} from './foreground-audio-clock.mjs';
 import {cp18WindowFromSearch,deferredButtonCueAllowed} from './cp18-audio-window.mjs';
 import {CP19_MODES,cp19Mode,cp19Paths,cp19PrimeAudio,cp19CanPlayStartCue} from './cp19-audio-modes.mjs';
 import {createCP19KeepAlive} from './cp19-keepalive.mjs';
@@ -40,9 +41,9 @@ if(CP19F_UX&&PREVIEW_MUSIC_FIX){
  window.addEventListener('pageshow',applyAmbient);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)applyAmbient();});
 }
-const CP19_VERSION=CP19F_UX?(PREVIEW_MAIN_HOME?'0.8.20.19-G-TEST.1-MAIN':PREVIEW_MUSIC_FIX?'0.8.20.15-MUSIC':PREVIEW_MAIN_HOME?'0.8.20.14-MAIN':PREVIEW_CONTROL_DECK?'0.8.20.13-DECK':PREVIEW_PREWARM?'0.8.20.12-PW':PREVIEW_VARIANT==='graphite-v2'?'0.8.20.11-A2':PREVIEW_VARIANT?`0.8.20.10-${PREVIEW_VARIANT==='graphite'?'A':'B'}`:'0.8.20.9'):'0.8.19.4';
+const CP19_VERSION=CP19F_UX?(PREVIEW_MAIN_HOME?'0.8.20.19-G-TEST.2-MAIN':PREVIEW_MUSIC_FIX?'0.8.20.15-MUSIC':PREVIEW_MAIN_HOME?'0.8.20.14-MAIN':PREVIEW_CONTROL_DECK?'0.8.20.13-DECK':PREVIEW_PREWARM?'0.8.20.12-PW':PREVIEW_VARIANT==='graphite-v2'?'0.8.20.11-A2':PREVIEW_VARIANT?`0.8.20.10-${PREVIEW_VARIANT==='graphite'?'A':'B'}`:'0.8.20.9'):'0.8.19.4';
 const CP18_BUTTON_WINDOW_MS=CP19?null:cp18WindowFromSearch(globalThis.location?.search||'');
-const DIAGNOSTICS_VERSION='0.8.20.19-G-TEST.1';
+const DIAGNOSTICS_VERSION='0.8.20.19-G-TEST.2';
 const diagnosticSender=createDiagnosticSender({
   endpoint:'' // isolated TEST: no telemetry
 });
@@ -84,7 +85,7 @@ if(CP19F_UX)document.addEventListener('pointerdown',event=>{
 const byId=id=>document.getElementById(id);
 if(CP19){
  const label=document.querySelector?.('.preview-version');
- if(label)label.textContent=PREVIEW_MAIN_HOME?'미하일 0.8.20.19-G-TEST.1':`미하일 ${CP19_VERSION} · TEST ${CP19.label}`;
+ if(label)label.textContent=PREVIEW_MAIN_HOME?'미하일 0.8.20.19-G-TEST.2':`미하일 ${CP19_VERSION} · TEST ${CP19.label}`;
 }else if(CP18_BUTTON_WINDOW_MS!==null){
  const label=document.querySelector?.('.preview-version');
  if(label)label.textContent=`미하일 0.8.19.3 · TEST ${CP18_BUTTON_WINDOW_MS} мс`;
@@ -125,6 +126,7 @@ el.soundToggle?.addEventListener('click',()=>{
   delayedStartGong.invalidate();
   stopActiveAudio({fadeMs:0,preserveMix:true});
   cp19KeepAlive.stop();
+  foregroundGate.resetCold();
  }
  soundEnabled=next;
  try{localStorage.setItem(SOUND_KEY,soundEnabled?'on':'off');}catch(_){}
@@ -139,10 +141,10 @@ let cp19WorkletBusy=false;
 function cp19Status(message){
  if(!CP19)return;
  const el=document.querySelector?.('.preview-version');
- if(el)el.textContent=PREVIEW_MAIN_HOME?'미하일 0.8.20.19-G-TEST.1':`미하일 ${CP19_VERSION} · TEST ${CP19.label} · ${message}`;
+ if(el)el.textContent=PREVIEW_MAIN_HOME?'미하일 0.8.20.19-G-TEST.2':`미하일 ${CP19_VERSION} · TEST ${CP19.label} · ${message}`;
 }
 function cp19Gesture(event){
- if(!CP19||document.hidden||!soundEnabled||event?.target?.closest?.('#soundToggle'))return;
+ if(!CP19||document.hidden||!soundEnabled||!foregroundGate.allowDirect||event?.target?.closest?.('#soundToggle'))return;
  // Controls with their own first-tap sound must not be delayed by global
  // WebAudio resume/decode in capturing pointerdown. They unlock after playback.
  if(CP19F_UX&&event?.target?.closest?.('button,summary'))return;
@@ -184,7 +186,7 @@ function phaseNow(){return computePhase(config,elapsedNow());}
 // Return readiness: an immediate zero-preparation START can then queue its gong
 // until Safari enables Web Audio and decodes the original recording.
 function unlockAudio(){
- if(!soundEnabled)return Promise.resolve(false);
+ if(!soundEnabled||foregroundGate.recovering)return Promise.resolve(false);
   if(audioMode==='html')return Promise.resolve(false);
  try{
    if(audioContext?.state==='closed')webRetirement.retire();
@@ -336,8 +338,9 @@ function preloadSounds(){
   if(CP19&&Object.keys(SOUND_PATHS).some(name=>!soundBuffers[name])&&webRetirement.isCurrent(context,token))soundsLoading=null;
  });return soundsLoading;
 }
-function sound(type,{leadOffset=0,scheduled=false}={}){
+function sound(type,{leadOffset=0,scheduled=false,direct=false}={}){
  if(!soundEnabled||document.hidden||audioInterruption.interrupted)return false;
+ if(direct?!foregroundGate.allowDirect:!foregroundGate.allowTimed)return false;
  if(audioMode==='html'&&htmlSounds){
    sessionMix.begin();
    return htmlSounds.play(type);
@@ -383,7 +386,7 @@ function stopActiveAudio({fadeMs=16,preserveButton=false,preserveMix=false}={}){
  if(!preserveMix)sessionMix.stop();
 }
 let audioRecoveryEpoch=0;
-let audioClockNeedsGesture=false;
+const foregroundGate=createForegroundAudioGate();
 function showAudioRecovery(show){if(el.audioRecover)el.audioRecover.hidden=!show;}
 const audioInterruption=createAudioInterruptionGuard({
  windowTarget:window,documentTarget:document,
@@ -394,74 +397,52 @@ const audioInterruption=createAudioInterruptionGuard({
    stopActiveAudio({fadeMs:web?0:reason==='blur'?12:0});
    if(CP19?.keepalive)cp19KeepAlive.stop();
    if(web)webWasInterrupted=true;
-   audioClockWatchdog.resetEpoch();
+   foregroundGate.interrupt();
    ++audioRecoveryEpoch;
  },
 });
 
-// TEST-only watchdog for an iOS WebKit AudioContext with state='running'
-// while its audio rendering clock no longer advances. Never replay past cues.
-const audioClockWatchdog=createAudioClockWatchdog({
- getContext:()=>audioContext,
- // iOS can freeze the audio clock even if the workout was never started.
- isEligible:()=>isPreview&&audioMode==='web'&&audioGestureSeen&&
-  !document.hidden&&!audioInterruption.interrupted&&
-  !audioClockNeedsGesture&&!!audioContext,
- onStall:ctx=>{
-  if(ctx!==audioContext)return;
-  console.warn('[RT AUDIO TEST] running clock frozen; one bounded recovery');
-  void recoverFrozenAudio(ctx);
- }
-});
-async function recoverFrozenAudio(ctx){
- const token=++audioRecoveryEpoch;
- const stillCurrent=()=>token===audioRecoveryEpoch&&ctx===audioContext&&
-  !document.hidden&&!audioInterruption.interrupted&&audioGestureSeen;
+// Gate all timer cues before drawing, not after sending them to Web Audio.
+function sampleForegroundAudio(){
+ if(!soundEnabled||!audioGestureSeen||document.hidden||audioInterruption.interrupted||audioMode!=='web')return;
+ const decision=foregroundGate.observe(audioContext,performance.now());
+ if(decision.cancel)stopActiveAudio({fadeMs:0,preserveMix:true});
+ if(decision.recover)void recoverForegroundAudio(audioContext,decision.token);
+ if(decision.ready)showAudioRecovery(false);
+ if(decision.needsGesture)showAudioRecovery(true);
+}
+async function recoverForegroundAudio(ctx,token){
+ const stillCurrent=()=>foregroundGate.isRecovery(token)&&ctx===audioContext&&soundEnabled&&
+  !document.hidden&&!audioInterruption.interrupted;
  if(!stillCurrent())return;
- stopActiveAudio({fadeMs:0,preserveMix:true});
- const ok=await pulseStalledContext(ctx,{
-  isCurrent:stillCurrent,timeoutMs:900,settleMs:420
- });
+ // One bounded attempt per foreground epoch; never create a context without a gesture.
+ const ok=ctx?.state==='running'
+  ?await pulseStalledContext(ctx,{isCurrent:stillCurrent,timeoutMs:900,settleMs:420})
+  :await boundedResume(ctx,{isCurrent:stillCurrent,timeoutMs:900});
  if(!stillCurrent())return;
- audioClockNeedsGesture=!ok;
+ foregroundGate.finish(token,ok);
+ // Even a successful resume must pass two fresh clock samples.
  showAudioRecovery(!ok);
- console.warn('[RT AUDIO TEST] clock recovery',ok?'PASS':'NEEDS USER TAP');
+ console.info('[RT G-TEST.2] recovery',ok?'VERIFY_CLOCK':'NEEDS_USER_TAP');
 }
 function endWebBackgroundReturn(){
  if(!isPreview||audioMode!=='web'||document.hidden||audioInterruption.interrupted)return;
- // No need to unlock a site the user has never interacted with.
- if(!audioGestureSeen)return;
- if(!webWasInterrupted&&audioContext?.state==='running')return;
+ if(!webWasInterrupted)return;
  webWasInterrupted=false;
- audioClockWatchdog.resetEpoch();
- const token=++audioRecoveryEpoch;
- let finished=false;
- const timeout=setTimeout(()=>{
-   if(!finished&&token===audioRecoveryEpoch&&!document.hidden)showAudioRecovery(true);
- },1500);
- void unlockAudio().then(ok=>{
-   finished=true;clearTimeout(timeout);
-   if(token!==audioRecoveryEpoch||document.hidden)return;
-   showAudioRecovery(!ok);
- }).catch(()=>{
-   finished=true;clearTimeout(timeout);
-   if(token===audioRecoveryEpoch&&!document.hidden)showAudioRecovery(true);
- });
+ foregroundGate.foreground();
+ if(!audioGestureSeen)foregroundGate.resetCold();
+ // No replay or blind resume on focus. The next foreground tick verifies actual progress.
+ lastPhase=null;lastCuePhase=null;
 }
 window.addEventListener('focus',endWebBackgroundReturn);
 el.audioRecover?.addEventListener('pointerdown',()=>cp19Haptics?.tap());
- el.audioRecover?.addEventListener('click',()=>{
-  if(document.hidden)return;
-  if(audioClockNeedsGesture&&audioContext){
-   stopActiveAudio({fadeMs:0});
-   webRetirement.retire(); // New context only within the direct user tap.
-   audioClockWatchdog.resetEpoch();
-   audioClockNeedsGesture=false;
-  }
-  const token=++audioRecoveryEpoch;
-  void unlockAudio().then(ok=>{
-    if(token===audioRecoveryEpoch&&!document.hidden)showAudioRecovery(!ok);
-  });
+el.audioRecover?.addEventListener('click',event=>{
+ if(!event.isTrusted||document.hidden||audioInterruption.interrupted||!soundEnabled)return;
+ stopActiveAudio({fadeMs:0,preserveMix:true});
+ foregroundGate.manualCheck();
+ if(audioContext)webRetirement.retire(); // Context recreation only from this real gesture.
+ audioGestureSeen=true;
+ void unlockAudio();
 });
 // Test host only: one-choice transport control, never rendered in production.
 // A mode change is allowed during a running test, but pauses the clock
@@ -616,7 +597,7 @@ function dispatchBluetoothCues(notify){
  }
  const plan=plannedCueWindow({config,elapsed,cursor:btCursor,lead:btLeadMs,computePhase,cueForPhaseTransition});
  btCursor=plan.cursor;
- if(!soundEnabled||audioClockNeedsGesture||audioContext?.state!=='running')return;
+ if(!soundEnabled||!foregroundGate.allowTimed||audioContext?.state!=='running')return;
  for(const cue of plan.events)sound(cue.type,{leadOffset:cue.offset,scheduled:true});
 }
 
@@ -657,7 +638,7 @@ function draw({notify=true}={}) {
   if(locked&&el.settings.open&&!isPreview)el.settings.open=false;
   if(session&&session.status==='running'&&type==='done')releaseScreenOn();
   dispatchBluetoothCues(notify);
-  if(btLeadMs===0&&notify&&session&&session.status==='running'&&lastPhase&&!document.hidden){
+  if(btLeadMs===0&&foregroundGate.allowTimed&&notify&&session&&session.status==='running'&&lastPhase&&!document.hidden){
     if(phase.key!==lastPhase.key){
       // Never replay a stale gong if WebKit delivers the phase-change callback
       // seconds late after the user returns to the app.
@@ -692,8 +673,8 @@ function startPause(){
     stopActiveAudio({preserveButton:isPreview,preserveMix:keepForegroundMix()});
     firstClackMeasured=false;
     if(cueLatencyLabel)cueLatencyLabel.textContent='Первый щелчок: задержка ещё не измерена';
-    if(audioClockNeedsGesture&&audioContext){
-     webRetirement.retire();audioClockWatchdog.resetEpoch();audioClockNeedsGesture=false;
+    if(foregroundGate.needsGesture){
+     if(audioContext)webRetirement.retire();foregroundGate.resetCold();
     }
     config=readConfig();updateInputs(config);
     session={status:'running',config,elapsedBeforeMs:0,resumedAt:Date.now()};
@@ -717,7 +698,7 @@ function reset(){if(el.settings.open)return;showAudioRecovery(false);++audioReco
 // G: synchronous resume in the release gesture, bounded deferred sound.
 let gCueEpoch=0;
 function gGestureCue(type){
- if(!soundEnabled||document.hidden||audioInterruption.interrupted||audioMode!=='web')return false;
+ if(!soundEnabled||document.hidden||audioInterruption.interrupted||audioMode!=='web'||!foregroundGate.allowDirect)return false;
  const button=type==='button',kind=button?'button':type==='start'?'start':'clack';
  const ticket=button?++buttonCueEpoch:++gCueEpoch;
  const ref=session,phaseKey=button?null:phaseNow().key,pressedAt=performance.now();
@@ -726,13 +707,13 @@ function gGestureCue(type){
   if(audioContext?.state==='closed')webRetirement.retire();
   audioContext ||= new (window.AudioContext||window.webkitAudioContext)();
   const context=audioContext,token=webRetirement.generation;
-  const valid=()=>soundEnabled&&!document.hidden&&!audioInterruption.interrupted&&audioMode==='web'&&
+  const valid=()=>soundEnabled&&!document.hidden&&!audioInterruption.interrupted&&audioMode==='web'&&foregroundGate.allowDirect&&
    webRetirement.isCurrent(context,token)&&context.state==='running'&&performance.now()-pressedAt<=150&&
    (button?ticket===buttonCueEpoch:ticket===gCueEpoch&&session===ref&&session?.status==='running'&&phaseNow().key===phaseKey&&elapsedNow()<=150);
-  if(context.state==='running'&&soundBuffers[kind])return valid()&&sound(type);
+  if(context.state==='running'&&soundBuffers[kind])return valid()&&sound(type,{direct:true});
   const resumed=context.state==='running'?Promise.resolve():context.resume();
   const buffered=soundBuffers[kind]?Promise.resolve():Promise.resolve(preloadSounds());
-  void Promise.all([resumed,buffered]).then(()=>{if(valid()&&soundBuffers[kind])sound(type)}).catch(()=>{});
+  void Promise.all([resumed,buffered]).then(()=>{if(valid()&&soundBuffers[kind])sound(type,{direct:true})}).catch(()=>{});
   return true;
  }catch(_){return false}
 }
@@ -821,5 +802,5 @@ if(soundEnabled&&isPreview&&audioMode==='web'&&(window.AudioContext||window.webk
 }
 // A force-quit can restore a running countdown without an unlocked context.
 if(session?.status==='running'&&audioMode==='web')showAudioRecovery(true);
-setInterval(()=>{if(!document.hidden){draw({notify:true});audioClockWatchdog.sample();}},100);
+setInterval(()=>{if(!document.hidden){sampleForegroundAudio();draw({notify:true});}},100);
 if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));

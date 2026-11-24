@@ -1,0 +1,253 @@
+{
+  "project": "APP-001",
+  "version": "0.8.20.19-G-TEST.2",
+  "base": "1c2b7f426de18fa609c23ad35cc1a5ba4e86b9b2",
+  "ownerFinding": "TEST.1: after switching applications, clacks and round-end gongs audibly late around 2s",
+  "previousStatus": "OWNER_QA_FAIL preserved; original integration-report.json unchanged",
+  "anchors": [
+    {
+      "name": "clock import",
+      "count": 1
+    },
+    {
+      "name": "clock state",
+      "count": 1
+    },
+    {
+      "name": "sound off cancels recovery",
+      "count": 1
+    },
+    {
+      "name": "unlock no concurrent recovery",
+      "count": 1
+    },
+    {
+      "name": "global gesture gate",
+      "count": 1
+    },
+    {
+      "name": "sound gate",
+      "count": 1
+    },
+    {
+      "name": "interrupt invalidation",
+      "count": 1
+    },
+    {
+      "name": "old recovery replacement",
+      "count": 1
+    },
+    {
+      "name": "lead gate",
+      "count": 1
+    },
+    {
+      "name": "zero lead gate",
+      "count": 1
+    },
+    {
+      "name": "start manual recovery",
+      "count": 1
+    },
+    {
+      "name": "G gate",
+      "count": 1
+    },
+    {
+      "name": "G late gate",
+      "count": 1
+    },
+    {
+      "name": "G direct sound",
+      "count": 1
+    },
+    {
+      "name": "G async direct",
+      "count": 1
+    },
+    {
+      "name": "sample before draw",
+      "count": 1
+    }
+  ],
+  "checks": [
+    {
+      "n": "cold direct allowed / scheduled blocked",
+      "pass": true
+    },
+    {
+      "n": "one sample insufficient",
+      "pass": true
+    },
+    {
+      "n": "two advancing samples",
+      "pass": true
+    },
+    {
+      "n": "hide invalidates immediately",
+      "pass": true
+    },
+    {
+      "n": "return first sample still blocked",
+      "pass": true
+    },
+    {
+      "n": "healthy return reopens",
+      "pass": true
+    },
+    {
+      "n": "frozen clock cancels before next dispatch",
+      "pass": true
+    },
+    {
+      "n": "one bounded recovery after stall",
+      "pass": true
+    },
+    {
+      "n": "no scheduling during recovery",
+      "pass": true
+    },
+    {
+      "n": "success still needs clock verification",
+      "pass": true
+    },
+    {
+      "n": "two fresh samples post recovery",
+      "pass": true
+    },
+    {
+      "n": "no second recovery same epoch",
+      "pass": true
+    },
+    {
+      "n": "suspended route bounded recovery",
+      "pass": true
+    },
+    {
+      "n": "late recovery after hide ignored",
+      "pass": true
+    },
+    {
+      "n": "return long gap no queued sound",
+      "pass": true
+    },
+    {
+      "n": "failed recovery asks for real gesture",
+      "pass": true
+    },
+    {
+      "n": "manual recovery not prematurely unlocked",
+      "pass": true
+    },
+    {
+      "n": "new clock accepted after verification",
+      "pass": true
+    },
+    {
+      "n": "slow clock blocked before draw",
+      "pass": true
+    },
+    {
+      "n": "large callback gap blocked even if clock advanced",
+      "pass": true
+    },
+    {
+      "n": "clock jump blocked",
+      "pass": true
+    },
+    {
+      "n": "replacement context cancels queued cues",
+      "pass": true
+    },
+    {
+      "n": "cold G 150ms window preserved",
+      "pass": true
+    },
+    {
+      "n": "cold context can recover naturally",
+      "pass": true
+    },
+    {
+      "n": "bounded resume success",
+      "pass": true
+    },
+    {
+      "n": "bounded resume rejects closed",
+      "pass": true
+    },
+    {
+      "n": "bounded resume timeout",
+      "pass": true
+    },
+    {
+      "n": "bounded resume stale token",
+      "pass": true
+    },
+    {
+      "n": "app syntax",
+      "pass": true
+    },
+    {
+      "n": "helper syntax",
+      "pass": true
+    },
+    {
+      "n": "SW syntax",
+      "pass": true
+    },
+    {
+      "n": "sampling occurs before draw",
+      "pass": true
+    },
+    {
+      "n": "both scheduled paths gated",
+      "pass": true
+    },
+    {
+      "n": "all audio calls gated incl G",
+      "pass": true
+    },
+    {
+      "n": "cancel before recovery",
+      "pass": true
+    },
+    {
+      "n": "no timer rebasing or speed changes",
+      "pass": true
+    },
+    {
+      "n": "existing compensation calculations preserved",
+      "pass": true
+    },
+    {
+      "n": "gain and double unchanged",
+      "pass": true
+    },
+    {
+      "n": "ambient unchanged",
+      "pass": true
+    },
+    {
+      "n": "G and WAV paths preserved",
+      "pass": true
+    },
+    {
+      "n": "settings storage unchanged",
+      "pass": true
+    },
+    {
+      "n": "UI unchanged beyond version",
+      "pass": true
+    },
+    {
+      "n": "new isolated cache and module",
+      "pass": true
+    },
+    {
+      "n": "old watchdog removed from app",
+      "pass": true
+    }
+  ],
+  "scope": "synthetic clock progression, bounded resume, static integration and syntax. Not browser/device/audio route QA. Already buffered Bluetooth samples cannot be retracted. Some cues can be skipped while verifying or recovering; no timer shift.",
+  "release": "TEST only; FINAL NO-GO"
+}
