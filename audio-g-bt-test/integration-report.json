@@ -1,0 +1,342 @@
+{
+  "project": "APP-001",
+  "checkpoint": "G + BLUETOOTH R2",
+  "baseFinal": "5982c471de1e7b7a186b1eeef9167987d242c20b",
+  "baseTest": "83d2b15eb1e118d2229a89a77899dd985fafde7a",
+  "history": [
+    {
+      "step": "R0",
+      "status": "FAIL_STOP_FIRST",
+      "reason": "PREVIEW_MAIN_HOME indentation anchor mismatch",
+      "writes": 0
+    },
+    {
+      "step": "R1",
+      "status": "FAIL_STOP_FIRST",
+      "reason": "startPause indentation anchor mismatch",
+      "writes": 0
+    }
+  ],
+  "anchorResults": [
+    {
+      "name": "import",
+      "count": 1
+    },
+    {
+      "name": "main flag",
+      "count": 1
+    },
+    {
+      "name": "engine selection",
+      "count": 1
+    },
+    {
+      "name": "telemetry",
+      "count": 1
+    },
+    {
+      "name": "session storage",
+      "count": 1
+    },
+    {
+      "name": "transport storage",
+      "count": 1
+    },
+    {
+      "name": "music storage",
+      "count": 1
+    },
+    {
+      "name": "sound/settings storage",
+      "count": 1
+    },
+    {
+      "name": "lead select",
+      "count": 1
+    },
+    {
+      "name": "sound ON G",
+      "count": 1
+    },
+    {
+      "name": "global release",
+      "count": 1
+    },
+    {
+      "name": "sound options",
+      "count": 1
+    },
+    {
+      "name": "missing scheduled sample",
+      "count": 1
+    },
+    {
+      "name": "audio offsets",
+      "count": 1
+    },
+    {
+      "name": "cancel queued sources",
+      "count": 1
+    },
+    {
+      "name": "clock recovery cancellation",
+      "count": 1
+    },
+    {
+      "name": "draw scheduler",
+      "count": 1
+    },
+    {
+      "name": "lock lead setting",
+      "count": 1
+    },
+    {
+      "name": "exclusive dispatch",
+      "count": 1
+    },
+    {
+      "name": "remove old startup ready",
+      "count": 1
+    },
+    {
+      "name": "startup G",
+      "count": 1
+    },
+    {
+      "name": "release gesture handler",
+      "count": 1
+    },
+    {
+      "name": "settings change isolation",
+      "count": 1
+    },
+    {
+      "name": "HTML app.mjs?v=082019",
+      "count": 1
+    },
+    {
+      "name": "HTML <meta name=\"apple-mobile-web-app-title\" content=\"Раунд таймер\">",
+      "count": 1
+    },
+    {
+      "name": "HTML <title>Раунд таймер</title>",
+      "count": 1
+    },
+    {
+      "name": "HTML <button type=\"button\" id=\"closeSettingsButton\"",
+      "count": 1
+    },
+    {
+      "name": "SW round-timer-shell-v0.8.20.19-final-graphite-ambient",
+      "count": 1
+    },
+    {
+      "name": "SW key.startsWith('round-timer-shell-')",
+      "count": 1
+    },
+    {
+      "name": "SW './app.mjs?v=082019',",
+      "count": 1
+    },
+    {
+      "name": "SW if (url.origin !== self.location.origin) return;",
+      "count": 1
+    },
+    {
+      "name": "SW if (/\\/(?:index\\.html)?$/.test(url.pathname)) {",
+      "count": 1
+    }
+  ],
+  "checks": [
+    {
+      "n": "settings valid 31 values",
+      "pass": true
+    },
+    {
+      "n": "invalid storage defaults zero",
+      "pass": true
+    },
+    {
+      "n": "zero delegates original path",
+      "pass": true
+    },
+    {
+      "n": "prepare-to-work gong target unchanged",
+      "pass": true
+    },
+    {
+      "n": "no duplicate next window",
+      "pass": true
+    },
+    {
+      "n": "no early dispatch outside horizon",
+      "pass": true
+    },
+    {
+      "n": "no replay of too-near start at max compensation",
+      "pass": true
+    },
+    {
+      "n": "10-second double",
+      "pass": true
+    },
+    {
+      "n": "one-second tick",
+      "pass": true
+    },
+    {
+      "n": "work-to-rest gong",
+      "pass": true
+    },
+    {
+      "n": "rest-to-work gong",
+      "pass": true
+    },
+    {
+      "n": "final gong",
+      "pass": true
+    },
+    {
+      "n": "no future after finish",
+      "pass": true
+    },
+    {
+      "n": "zero rest next round",
+      "pass": true
+    },
+    {
+      "n": "infinite round transition",
+      "pass": true
+    },
+    {
+      "n": "60s warning preserved",
+      "pass": true
+    },
+    {
+      "n": "short preparation threshold excluded",
+      "pass": true
+    },
+    {
+      "n": "skip dispatch at current instant",
+      "pass": true
+    },
+    {
+      "n": "cursor high water on resume",
+      "pass": true
+    },
+    {
+      "n": "large elapsed jump bounded no backlog",
+      "pass": true
+    },
+    {
+      "n": "timer model untouched",
+      "pass": true
+    },
+    {
+      "n": "complete uninterrupted sequence lead=50",
+      "pass": true
+    },
+    {
+      "n": "complete uninterrupted sequence lead=400",
+      "pass": true
+    },
+    {
+      "n": "complete uninterrupted sequence lead=1000",
+      "pass": true
+    },
+    {
+      "n": "complete uninterrupted sequence lead=1500",
+      "pass": true
+    },
+    {
+      "n": "app syntax",
+      "pass": true
+    },
+    {
+      "n": "helper syntax",
+      "pass": true
+    },
+    {
+      "n": "SW syntax",
+      "pass": true
+    },
+    {
+      "n": "gain stays FINAL",
+      "pass": true
+    },
+    {
+      "n": "double timings preserved",
+      "pass": true
+    },
+    {
+      "n": "G no HTML startup fallback",
+      "pass": true
+    },
+    {
+      "n": "G no prime/keepalive",
+      "pass": true
+    },
+    {
+      "n": "positive lead gates original cue path",
+      "pass": true
+    },
+    {
+      "n": "future sound never deferred",
+      "pass": true
+    },
+    {
+      "n": "scheduled offsets pass through controller",
+      "pass": true
+    },
+    {
+      "n": "future sources immediate stop",
+      "pass": true
+    },
+    {
+      "n": "startup cue immediate only",
+      "pass": true
+    },
+    {
+      "n": "storage keys isolated",
+      "pass": true
+    },
+    {
+      "n": "cache isolated",
+      "pass": true
+    },
+    {
+      "n": "WAV-only shell",
+      "pass": true
+    },
+    {
+      "n": "native lead select independent of wheels",
+      "pass": true
+    },
+    {
+      "n": "all visual CSS references retained",
+      "pass": true
+    },
+    {
+      "n": "diagnostics endpoint disabled",
+      "pass": true
+    },
+    {
+      "n": "all offline assets exist",
+      "pass": true
+    },
+    {
+      "n": "all app imports present",
+      "pass": true
+    },
+    {
+      "n": "WAV exact five original blobs",
+      "pass": true
+    },
+    {
+      "n": "no writes outside isolated prefix",
+      "pass": true
+    }
+  ],
+  "scope": "pure scheduling model with original engine, static integration checks and syntax; not physical iPhone, browser UI, Bluetooth or offline runtime",
+  "release": "NO_GO until separate device QA"
+}
